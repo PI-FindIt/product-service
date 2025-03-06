@@ -1,7 +1,7 @@
 import grpc
 from concurrent import futures
-import service_pb2 as service_pb2
-import service_pb2_grpc as service_pb2_grpc
+import src.service_pb2 as service_pb2
+import src.service_pb2_grpc as service_pb2_grpc
 
 class ExampleService(service_pb2_grpc.ExampleServiceServicer):
     def SayHello(self, request, context):

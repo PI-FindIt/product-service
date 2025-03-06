@@ -54,9 +54,16 @@ services:
     tty: true
     networks:
       - serviceName
-      - backend
+      - control-room_backend
     labels:
       - "traefik.http.routers.serviceName.rule=Host(`serviceName.localhost`)"
 
+
 networks:
   serviceName:
+  control-room_backend:
+    external: true
+
+volumes:
+  postgres-data:
+  mongo-data:

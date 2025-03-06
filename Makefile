@@ -1,17 +1,74 @@
 PROJECT_NAME := $(shell basename $(PWD))
+OS := $(shell uname)
+
+ifeq ($(OS),Darwin)
+	SED := gsed
+else
+	SED := sed
+endif
+
+TEMPLATE_FOLDER := ./templates
 COMPOSE_FILE := compose.yaml
-COMPOSE_TEMPLATE := compose.template.yaml
+COMPOSE_TEMPLATE := $(TEMPLATE_FOLDER)/compose.template.yaml
 COMPOSE_PROD_FILE := compose.prod.yaml
-COMPOSE_PROD_TEMPLATE := compose.prod.template.yaml
+COMPOSE_PROD_TEMPLATE := $(TEMPLATE_FOLDER)/compose.prod.template.yaml
+
+DOCKERFILE := Dockerfile
+DOCKERFILE_TEMPLATE := $(TEMPLATE_FOLDER)/Dockerfile.template
+
+DOCKERFILE_PROD := Dockerfile.prod
+DOCKERFILE_PROD_TEMPLATE := $(TEMPLATE_FOLDER)/Dockerfile.template.prod
+
+WORKFLOW_TEMPLATE := $(TEMPLATE_FOLDER)/submodule.template.yaml
+WORKFLOW_FILE := .github/workflows/submodule.yaml
+
+all: dev prod
 
 prepare-compose:
-	sed 's/serviceName/$(PROJECT_NAME)/g' $(COMPOSE_TEMPLATE) > $(COMPOSE_FILE)
+	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(COMPOSE_TEMPLATE) > $(COMPOSE_FILE)
 
-up: prepare-compose
+prepare-compose-prod:
+	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(COMPOSE_PROD_TEMPLATE) > $(COMPOSE_PROD_FILE)
+
+prepare-dockerfile:
+	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(DOCKERFILE_TEMPLATE) > $(DOCKERFILE)
+
+prepare-dockerfile-prod:
+	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(DOCKERFILE_PROD_TEMPLATE) > $(DOCKERFILE_PROD)
+
+prepare-workflow:
+	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(WORKFLOW_TEMPLATE) > $(WORKFLOW_FILE)
+
+dev: prepare-dockerfile prepare-compose prepare-workflow
+
+prod: prepare-dockerfile-prod prepare-compose-prod prepare-workflow
+
+
+
+up:
+	@if [ ! -f compose.yaml ]; then \
+		$(MAKE) prepare-dockerfile; \
+		$(MAKE) prepare-compose; \
+	fi
 	docker compose up -d
+
+up-prod:
+	@if [ ! -f compose.prod.yaml ]; then \
+		$(MAKE) prepare-dockerfile-prod; \
+		$(MAKE) prepare-compose-prod; \
+	fi
+	docker compose -f $(COMPOSE_PROD_FILE) up -d
 
 down:
 	docker compose down
 
 clean:
-	rm -f $(COMPOSE_FILE)
+	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE)
+
+help:
+	@echo "Targets:"
+	@echo "  prepare-compose  Prepare the compose file"
+	@echo "  up               Start the project"
+	@echo "  down             Stop the project"
+	@echo "  clean            Clean up the project"
+	@echo "  help             Show this help message"

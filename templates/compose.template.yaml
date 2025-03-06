@@ -20,7 +20,7 @@
         - postgres-data:/var/lib/postgresql/data
       networks:
         - serviceName
-        - backend
+        - control-room_backend
       labels:
         - "traefik.http.routers.postgresServiceName.rule=Host(`postgres.serviceName.localhost`)"
 
@@ -41,7 +41,7 @@
         - mongo-data:/data/db
       networks:
         - serviceName
-        - backend
+        - control-room_backend
       labels:
         - "traefik.http.routers.mongoServiceName.rule=Host(`mongo.serviceName.localhost`)"
 
@@ -58,13 +58,19 @@
   #    ports:
   #      - "8000:8000" # change me
       volumes:
-        - .:/app
+        - .:/serviceName
+
       tty: true
       networks:
         - serviceName
-        - backend
+        - control-room_backend
       labels:
         - "traefik.http.routers.serviceName.rule=Host(`serviceName.localhost`)"
 
   networks:
     serviceName:
+    control-room_backend:
+      external: true
+  volumes:
+    postgres-data:
+    mongo-data:
