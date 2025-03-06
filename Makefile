@@ -53,7 +53,7 @@ prepare-workflow:
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(WORKFLOW_TEMPLATE) > $(WORKFLOW_FILE)
 
 protobuf-gen:
-	python -m grpc_tools.protoc -I=$(PROTOBUF_FOLDER) --python_out=$(PROTOBUF_FOLDER) --grpc_python_out=$(PROTOBUF_FOLDER) $(PROTOBUF_SERVICE_FILE)
+	python -m grpc_tools.protoc -I=$(PROTOBUF_FOLDER) --python_out=$(PROTOBUF_FOLDER) --grpc_python_out=$(PROTOBUF_FOLDER) --pyi_out=$(PROTOBUF_FOLDER) $(PROTOBUF_SERVICE_FILE)
 
 protobuf-create:
 	git submodule update --init --recursive
