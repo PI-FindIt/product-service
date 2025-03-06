@@ -1,11 +1,14 @@
-PROJECT_NAME := $(shell basename $(PWD))
 OS := $(shell uname)
-
 ifeq ($(OS),Darwin)
 	SED := gsed
+	TR := gtr
 else
 	SED := sed
+	TR := tr
 endif
+
+PROJECT_NAME := $(shell basename $(PWD))
+PROJECT_NAME_SNAKE_CASE := $(shell echo $(PROJECT_NAME) | $(TR) '-' '_')
 
 TEMPLATE_FOLDER := ./templates
 COMPOSE_FILE := compose.yaml
@@ -22,7 +25,11 @@ DOCKERFILE_PROD_TEMPLATE := $(TEMPLATE_FOLDER)/Dockerfile.template.prod
 WORKFLOW_TEMPLATE := $(TEMPLATE_FOLDER)/submodule.template.yaml
 WORKFLOW_FILE := .github/workflows/submodule.yaml
 
-all: dev prod
+PROTOBUF_FOLDER := protobuf/$(PROJECT_NAME_SNAKE_CASE)
+PROTOBUF_SERVICE_FILE := $(PROTOBUF_FOLDER)/service.proto
+PROTOBUF_SERVICE_FILE_TEMPLATE := $(TEMPLATE_FOLDER)/service.template.proto
+
+all: dev prod protobuf-create protobuf-gen
 
 prepare-compose:
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(COMPOSE_TEMPLATE) > $(COMPOSE_FILE)
@@ -37,13 +44,21 @@ prepare-dockerfile-prod:
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(DOCKERFILE_PROD_TEMPLATE) > $(DOCKERFILE_PROD)
 
 prepare-workflow:
+	mkdir -p .github/workflows
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(WORKFLOW_TEMPLATE) > $(WORKFLOW_FILE)
+
+protobuf-gen:
+	python -m grpc_tools.protoc -I=$(PROTOBUF_FOLDER) --python_out=$(PROTOBUF_FOLDER) --grpc_python_out=$(PROTOBUF_FOLDER) $(PROTOBUF_SERVICE_FILE)
+
+protobuf-create:
+	git submodule update --init --recursive
+	mkdir -p $(PROTOBUF_FOLDER)
+	touch $(PROTOBUF_FOLDER)/__init__.py
+	cp $(PROTOBUF_SERVICE_FILE_TEMPLATE) $(PROTOBUF_SERVICE_FILE)
 
 dev: prepare-dockerfile prepare-compose prepare-workflow
 
 prod: prepare-dockerfile-prod prepare-compose-prod prepare-workflow
-
-
 
 up:
 	@if [ ! -f compose.yaml ]; then \
@@ -64,6 +79,7 @@ down:
 
 clean:
 	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE)
+	rm -rf $(PROTOBUF_FOLDER)
 
 help:
 	@echo "Targets:"

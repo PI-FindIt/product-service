@@ -1,7 +1,6 @@
 import grpc
-import service_pb2
-import service_pb2_grpc
-
+import protobuf.service_template.service_pb2 as service_pb2
+import protobuf.service_template.service_pb2_grpc as service_pb2_grpc
 
 def run():
     channel = grpc.insecure_channel('localhost:50051')

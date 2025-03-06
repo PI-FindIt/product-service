@@ -1,7 +1,7 @@
 import grpc
 from concurrent import futures
-import src.service_pb2 as service_pb2
-import src.service_pb2_grpc as service_pb2_grpc
+import protobuf.service_template.service_pb2 as service_pb2
+import protobuf.service_template.service_pb2_grpc as service_pb2_grpc
 
 class ExampleService(service_pb2_grpc.ExampleServiceServicer):
     def SayHello(self, request, context):
@@ -15,6 +15,6 @@ def serve():
     print("WHO KNOWS")
     server.wait_for_termination()
 
-#change this to put on docker
+# change this to put on docker
 if __name__ == '__main__':
     serve()
