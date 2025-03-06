@@ -1,5 +1,8 @@
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
+	EXECUTABLES = gsed gtr
+	K := $(foreach exec,$(EXECUTABLES),\
+			$(if $(shell which $(exec)),some string,$(error "No GNU tools installed on macOS, consider installing using brew")))
 	SED := gsed
 	TR := gtr
 else
