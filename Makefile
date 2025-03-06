@@ -31,6 +31,8 @@ WORKFLOW_FILE := .github/workflows/submodule.yaml
 PROTOBUF_FOLDER := protobuf/$(PROJECT_NAME_SNAKE_CASE)
 PROTOBUF_SERVICE_FILE := $(PROTOBUF_FOLDER)/service.proto
 PROTOBUF_SERVICE_FILE_TEMPLATE := $(TEMPLATE_FOLDER)/service.template.proto
+PROTOBUF_SERVICE_SERVER := src/api/service.py
+PROTOBUF_SERVICE_SERVER_TEMPLATE := $(TEMPLATE_FOLDER)/service.template.py
 
 all: dev prod protobuf-create protobuf-gen
 
@@ -58,6 +60,7 @@ protobuf-create:
 	mkdir -p $(PROTOBUF_FOLDER)
 	touch $(PROTOBUF_FOLDER)/__init__.py
 	cp $(PROTOBUF_SERVICE_FILE_TEMPLATE) $(PROTOBUF_SERVICE_FILE)
+	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g' $(PROTOBUF_SERVICE_SERVER_TEMPLATE) > $(PROTOBUF_SERVICE_SERVER)
 
 dev: prepare-dockerfile prepare-compose prepare-workflow
 
@@ -81,7 +84,7 @@ down:
 	docker compose down
 
 clean:
-	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE)
+	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE) $(PROTOBUF_SERVICE_SERVER)
 	rm -rf $(PROTOBUF_FOLDER)
 
 help:
