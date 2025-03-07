@@ -9,14 +9,9 @@ class ServiceName(service_pb2_grpc.ServiceNameServicer):
         return service_pb2.HelloReply(message=f"Hello, {request.name}!")
 
 
-def serve():
+def serve_grpc():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     service_pb2_grpc.add_ServiceNameServicer_to_server(ServiceName(), server)
     server.add_insecure_port("[::]:50051")
     server.start()
     server.wait_for_termination()
-
-
-# change this to put on docker
-if __name__ == "__main__":
-    serve()
