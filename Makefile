@@ -64,7 +64,7 @@ protobuf-create:
 	mkdir -p $(PROTOBUF_FOLDER)
 	touch $(PROTOBUF_FOLDER)/__init__.py
 	$(SED) 's/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_SERVICE_FILE_TEMPLATE) > $(PROTOBUF_SERVICE_FILE)
-	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g' $(PROTOBUF_SERVICE_SERVER_TEMPLATE) > $(PROTOBUF_SERVICE_SERVER)
+	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g; s/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_SERVICE_SERVER_TEMPLATE) > $(PROTOBUF_SERVICE_SERVER)
 	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g; s/service-name/$(PROJECT_NAME)/g; s/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_CONNECTIONS_TEMPLATE) >> $(PROTOBUF_CONNECTIONS)
 
 dev: prepare-dockerfile prepare-compose prepare-workflow
