@@ -9,28 +9,18 @@ Template repository to easily create microservices
 5. Create a virtual environment and activate it
 6. Install poetry with `pip install poetry`
 7. Install the dependencies with `poetry install`
-8. Run `make all` to generate code regarding Docker and gRPC
+8. Run `make all` to generate code regarding Docker, CI/CD and gRPC
 9. Commit & push changes
 
-## Commands used to create this template
+## Common ports
+There are no ports exposed to the host machine by default.
+All services are exposed via Traefik, a reverse proxy.
 
-```bash
-poetry new microservice-template
-cd microservice-template
+One can use subdomains, such as `api.localhost`, to access the services.
 
-poetry add fastapi grpcio grpcio-tools sqlmodel alembic sqlalchemy databases pymongo odmantic
-poetry add --group dev uvicorn pytest pytest-asyncio mypy black isort 
-
-#É mandatorio correr o comando abaixo para poder usar o grpc  
-python -m grpc_tools.protoc -I=src/grpc_service/protos --python_out=src/grpc_service --grpc_python_out=src/grpc_service src/grpc_service/protos/service.proto
-
-# Para SQL
-alembic init migrations
-alembic revision --autogenerate -m "Initial migration"
-alembic upgrade head
-
-
-```
-
-
-## How to use
+| Service    | Port  | Subdomain | Available |
+|------------|-------|-----------|-----------|
+| gRPC       | 50051 | N/A       | No        |
+| FastAPI    | 8000  | api       | Yes       |
+| PostgreSQL | 5432  | postgres  | Dev only  |
+| MongoDB    | 27017 | mongo     | Dev only  |
