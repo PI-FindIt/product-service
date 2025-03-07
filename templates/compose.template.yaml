@@ -24,6 +24,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: mongo
     restart: unless-stopped
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
@@ -42,7 +43,13 @@ services:
     build:
       dockerfile: Dockerfile
     restart: unless-stopped
-    env_file: .env
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_URL: serviceName_postgres
+      MONGO_DB: mongo
+      MONGO_URL: serviceName_mongo
     depends_on:
       serviceName_postgres:
         condition: service_healthy
@@ -50,7 +57,6 @@ services:
         condition: service_healthy
     volumes:
       - .:/serviceName
-
     tty: true
     networks:
       - serviceName
