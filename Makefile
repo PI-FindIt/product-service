@@ -12,6 +12,7 @@ endif
 
 PROJECT_NAME := $(shell basename $(PWD))
 PROJECT_NAME_SNAKE_CASE := $(shell echo $(PROJECT_NAME) | $(TR) '-' '_')
+PROJECT_NAME_PASCAL_CASE := $(shell echo $(PROJECT_NAME) | $(SED) 's/[^-]\+/\L\u&/g' | $(TR) -d '-')
 
 TEMPLATE_FOLDER := ./templates
 COMPOSE_FILE := compose.yaml
@@ -33,6 +34,8 @@ PROTOBUF_SERVICE_FILE := $(PROTOBUF_FOLDER)/service.proto
 PROTOBUF_SERVICE_FILE_TEMPLATE := $(TEMPLATE_FOLDER)/service.template.proto
 PROTOBUF_SERVICE_SERVER := src/api/service.py
 PROTOBUF_SERVICE_SERVER_TEMPLATE := $(TEMPLATE_FOLDER)/service.template.py
+PROTOBUF_CONNECTIONS := protobuf/connections.py
+PROTOBUF_CONNECTIONS_TEMPLATE := $(TEMPLATE_FOLDER)/connections.template.py
 
 all: dev prod protobuf-create protobuf-gen
 
@@ -59,38 +62,14 @@ protobuf-create:
 	git submodule update --init --recursive
 	mkdir -p $(PROTOBUF_FOLDER)
 	touch $(PROTOBUF_FOLDER)/__init__.py
-	cp $(PROTOBUF_SERVICE_FILE_TEMPLATE) $(PROTOBUF_SERVICE_FILE)
+	$(SED) 's/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_SERVICE_FILE_TEMPLATE) > $(PROTOBUF_SERVICE_FILE)
 	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g' $(PROTOBUF_SERVICE_SERVER_TEMPLATE) > $(PROTOBUF_SERVICE_SERVER)
+	$(SED) -e 's/(service_name)(service-name)(ServiceName)/($(PROJECT_NAME_SNAKE_CASE))($(PROJECT_NAME))($(PROJECT_NAME_PASCAL_CASE))/g' $(PROTOBUF_CONNECTIONS_TEMPLATE) >> $(PROTOBUF_CONNECTIONS)
 
 dev: prepare-dockerfile prepare-compose prepare-workflow
 
 prod: prepare-dockerfile-prod prepare-compose-prod prepare-workflow
 
-up:
-	@if [ ! -f compose.yaml ]; then \
-		$(MAKE) prepare-dockerfile; \
-		$(MAKE) prepare-compose; \
-	fi
-	docker compose up -d
-
-up-prod:
-	@if [ ! -f compose.prod.yaml ]; then \
-		$(MAKE) prepare-dockerfile-prod; \
-		$(MAKE) prepare-compose-prod; \
-	fi
-	docker compose -f $(COMPOSE_PROD_FILE) up -d
-
-down:
-	docker compose down
-
 clean:
 	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE) $(PROTOBUF_SERVICE_SERVER)
 	rm -rf $(PROTOBUF_FOLDER)
-
-help:
-	@echo "Targets:"
-	@echo "  prepare-compose  Prepare the compose file"
-	@echo "  up               Start the project"
-	@echo "  down             Stop the project"
-	@echo "  clean            Clean up the project"
-	@echo "  help             Show this help message"
