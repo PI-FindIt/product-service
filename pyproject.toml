@@ -33,6 +33,7 @@ mypy = "^1.15.0"
 black = "^25.1.0"
 isort = "^6.0.1"
 sqlalchemy-stubs = "^0.4"
+types-protobuf = "^5.29.1.20250208"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
