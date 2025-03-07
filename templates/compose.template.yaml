@@ -1,76 +1,67 @@
+services:
+  serviceName_postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - serviceName
+      - control-room_backend
+    labels:
+      - "traefik.http.routers.serviceName_postgres.rule=HostRegexp(`postgres.{domain:.+}`) && PathPrefix(`/kebab`)"
 
-  # This code in only template, CHANGE IT!
-  # The ports are only declarative, YOU CAN'T UNCOMMENT THEM
-  services:
-    serviceName_postgres: #change here the name for serviceName_db if needed
-      image: postgres:17-alpine
-      environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: postgres
-        POSTGRES_DB: postgres
-      healthcheck:
-        test: ["CMD", "pg_isready", "-U", "postgres"]
-        interval: 2s
-        timeout: 5s
-        retries: 5
-      restart: unless-stopped
-  #    ports:
-  #      - "5432:5432"
-      volumes:
-        - postgres-data:/var/lib/postgresql/data
-      networks:
-        - serviceName
-        - control-room_backend
-      labels:
-        - "traefik.http.routers.postgresServiceName.rule=Host(`postgres.serviceName.localhost`)"
+  serviceName_mongo:
+    image: mongo:8.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 2s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - serviceName
+      - control-room_backend
+    labels:
+      - "traefik.http.routers.serviceName_mongo.rule=HostRegexp(`mongo.{domain:.+}`) && PathPrefix(`/kebab`)"
 
-    serviceName_mongo: #change here the name for serviceName_document if needed
-      image: mongo:8.0
-      environment:
-        MONGO_INITDB_ROOT_USERNAME: root
-        MONGO_INITDB_ROOT_PASSWORD: root
-      restart: unless-stopped
-      healthcheck:
-        test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-        interval: 2s
-        timeout: 10s
-        retries: 5
-  #    ports:
-  #      - "27017:27017"
-      volumes:
-        - mongo-data:/data/db
-      networks:
-        - serviceName
-        - control-room_backend
-      labels:
-        - "traefik.http.routers.mongoServiceName.rule=Host(`mongo.serviceName.localhost`)"
+  serviceName:
+    build:
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      serviceName_postgres:
+        condition: service_healthy
+      serviceName_mongo:
+        condition: service_healthy
+    volumes:
+      - .:/serviceName
 
-    serviceName: #change here the name for serviceName
-      build:
-        dockerfile: Dockerfile
-      restart: unless-stopped
-      env_file: .env
-      depends_on:
-        serviceName_postgres:
-          condition: service_healthy
-        serviceName_mongo:
-          condition: service_healthy
-  #    ports:
-  #      - "8000:8000" # change me
-      volumes:
-        - .:/serviceName
+    tty: true
+    networks:
+      - serviceName
+      - control-room_backend
+    labels:
+      - "traefik.http.routers.serviceName.rule=HostRegexp(`api.{domain:.+}`) && PathPrefix(`/kebab`)"
 
-      tty: true
-      networks:
-        - serviceName
-        - control-room_backend
-      labels:
-        - "traefik.http.routers.serviceName.rule=Host(`serviceName.localhost`)"
-
-  networks:
-    serviceName:
-    control-room_backend:
-      external: true
-  volumes:
-    postgres-data:
-    mongo-data:
+networks:
+  serviceName:
+  control-room_backend:
+    external: true
+volumes:
+  postgres-data:
+  mongo-data:

@@ -13,6 +13,7 @@ endif
 PROJECT_NAME := $(shell basename $(PWD))
 PROJECT_NAME_SNAKE_CASE := $(shell echo $(PROJECT_NAME) | $(TR) '-' '_')
 PROJECT_NAME_PASCAL_CASE := $(shell echo $(PROJECT_NAME) | $(SED) 's/[^-]\+/\L\u&/g' | $(TR) -d '-')
+PROJECT_NAME_KEBAB_CASE := $(shell echo $(PROJECT_NAME) | $(SED) 's/-[^-]*$$//')
 
 TEMPLATE_FOLDER := ./templates
 COMPOSE_FILE := compose.yaml
@@ -40,10 +41,10 @@ PROTOBUF_CONNECTIONS_TEMPLATE := $(TEMPLATE_FOLDER)/connections.template.py
 all: dev prod protobuf-create protobuf-gen
 
 prepare-compose:
-	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(COMPOSE_TEMPLATE) > $(COMPOSE_FILE)
+	$(SED) 's/serviceName/$(PROJECT_NAME)/g; s/kebab/$(PROJECT_NAME_KEBAB_CASE)/g' $(COMPOSE_TEMPLATE) > $(COMPOSE_FILE)
 
 prepare-compose-prod:
-	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(COMPOSE_PROD_TEMPLATE) > $(COMPOSE_PROD_FILE)
+	$(SED) 's/serviceName/$(PROJECT_NAME)/g; s/kebab/$(PROJECT_NAME_KEBAB_CASE)/g' $(COMPOSE_PROD_TEMPLATE) > $(COMPOSE_PROD_FILE)
 
 prepare-dockerfile:
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(DOCKERFILE_TEMPLATE) > $(DOCKERFILE)
@@ -64,7 +65,7 @@ protobuf-create:
 	touch $(PROTOBUF_FOLDER)/__init__.py
 	$(SED) 's/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_SERVICE_FILE_TEMPLATE) > $(PROTOBUF_SERVICE_FILE)
 	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g' $(PROTOBUF_SERVICE_SERVER_TEMPLATE) > $(PROTOBUF_SERVICE_SERVER)
-	$(SED) -e 's/(service_name)(service-name)(ServiceName)/($(PROJECT_NAME_SNAKE_CASE))($(PROJECT_NAME))($(PROJECT_NAME_PASCAL_CASE))/g' $(PROTOBUF_CONNECTIONS_TEMPLATE) >> $(PROTOBUF_CONNECTIONS)
+	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g; s/service-name/$(PROJECT_NAME)/g; s/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_CONNECTIONS_TEMPLATE) >> $(PROTOBUF_CONNECTIONS)
 
 dev: prepare-dockerfile prepare-compose prepare-workflow
 

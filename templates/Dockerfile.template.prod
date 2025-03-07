@@ -7,9 +7,8 @@ WORKDIR /serviceName
 
 RUN pip install --no-cache poetry
 
-COPY .. .
+COPY . .
 RUN poetry install --no-dev
-RUN python -m grpc_tools.protoc -I=src/grpc_service/protos --python_out=src/grpc_service --grpc_python_out=src/grpc_service src/grpc_service/protos/service.proto
 
 EXPOSE 8000
 CMD poetry run gunicorn src.main:app --bind 0.0.0.0:8000 -k uvicorn.workers.UvicornWorker
