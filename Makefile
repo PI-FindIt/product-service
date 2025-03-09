@@ -58,6 +58,8 @@ prepare-workflow:
 
 protobuf-gen:
 	python -m grpc_tools.protoc -I=$(PROTOBUF_FOLDER) --python_out=$(PROTOBUF_FOLDER) --grpc_python_out=$(PROTOBUF_FOLDER) --pyi_out=$(PROTOBUF_FOLDER) $(PROTOBUF_SERVICE_FILE)
+	$(SED) 's/import service_pb2/from . import service_pb2/g' $(PROTOBUF_FOLDER)/service_pb2_grpc.py > $(PROTOBUF_FOLDER)/service_pb2_grpc.py.tmp
+	mv $(PROTOBUF_FOLDER)/service_pb2_grpc.py.tmp $(PROTOBUF_FOLDER)/service_pb2_grpc.py
 
 protobuf-create:
 	git submodule update --init --recursive
