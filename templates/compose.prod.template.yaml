@@ -50,7 +50,7 @@ services:
       - serviceName
       - control-room_backend
     labels:
-      - "traefik.http.routers.serviceName.rule=HostRegexp(`api\..+`) && PathPrefix(`/kebab`)"
+      - "traefik.http.routers.serviceName.rule=HostRegexp(`api\\..+`) && PathPrefix(`/kebab`)"
 
 
 networks:
