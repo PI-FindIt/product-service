@@ -1,9 +1,11 @@
 from fastapi import APIRouter
 
-router = APIRouter()
+
+path_prefix = "/microservice"
+router = APIRouter(prefix=path_prefix)
 
 
-@router.get("/")
+@router.get("")
 def read_root() -> dict[str, str]:
     return {"message": "Microservice is running"}
 
