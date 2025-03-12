@@ -1,9 +1,9 @@
-import asyncio
+from concurrent import futures
 
 import grpc  # type: ignore
-from concurrent import futures
-import protobuf.microservice_template.service_pb2 as service_pb2
-import protobuf.microservice_template.service_pb2_grpc as service_pb2_grpc
+
+import protobuf.service_template.service_pb2 as service_pb2
+import protobuf.service_template.service_pb2_grpc as service_pb2_grpc
 from src.models.book import CrudBook
 
 
@@ -16,16 +16,12 @@ class MicroserviceTemplate(service_pb2_grpc.MicroserviceTemplateServicer):
         # loop = asyncio.get_running_loop()
         # book = await loop.run_in_executor(None, crud.get, request.id)
 
-        # book = await crud.get(id=request.id)
-        #
-        return service_pb2.Book(
-            title="The Great Gatsby", author="F. Scott Fitzgerald", year=1925
-        )
-        # if book is None:
-        #     context.set_code(grpc.StatusCode.NOT_FOUND)
-        #     context.set_details("Book not found")
-        #     return service_pb2.Book()
-        # return book.to_grpc()
+        book = await crud.get(id=request.id)
+        if book is None:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details("Book not found")
+            return service_pb2.Book()
+        return book.to_grpc()
 
 
 async def serve_grpc() -> None:

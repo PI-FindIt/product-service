@@ -1,7 +1,6 @@
-import threading
+import asyncio
 from contextlib import asynccontextmanager
-from threading import Thread
-from typing import Coroutine, Any, AsyncGenerator
+from typing import AsyncGenerator
 
 import strawberry
 from fastapi import FastAPI
@@ -12,19 +11,13 @@ from src.api.routes import router
 from src.api.service import serve_grpc
 from src.config.session import init_postgres_db
 from src.models.book import CrudBook, BookBase
-import asyncio
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     await init_postgres_db()
+    asyncio.create_task(serve_grpc())
     yield
-
-    def start_grpc_server() -> None:
-        asyncio.run(serve_grpc())
-
-    grpc_thread = threading.Thread(target=start_grpc_server)
-    grpc_thread.start()
 
 
 async def inserter() -> None:
