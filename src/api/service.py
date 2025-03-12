@@ -11,11 +11,7 @@ class MicroserviceTemplate(service_pb2_grpc.MicroserviceTemplateServicer):
     async def GetBook(
         self, request: service_pb2.BookBase, context: grpc.ServicerContext
     ) -> service_pb2.Book:
-
         crud = CrudBook()
-        # loop = asyncio.get_running_loop()
-        # book = await loop.run_in_executor(None, crud.get, request.id)
-
         book = await crud.get(id=request.id)
         if book is None:
             context.set_code(grpc.StatusCode.NOT_FOUND)

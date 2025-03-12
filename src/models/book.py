@@ -1,7 +1,8 @@
 from typing import Optional
 
 import strawberry
-from sqlmodel import Field, SQLModel
+from pydantic import BaseModel as PydanticBaseModel
+from sqlmodel import Field
 
 from protobuf.connections import microservice_template_models
 from src.crud.base import CRUDBase
@@ -9,7 +10,7 @@ from src.models.base import BaseModel
 
 
 @strawberry.type
-class _BookAttr(SQLModel):
+class _BookAttr(PydanticBaseModel):
     title: str
     author: str
     year: int

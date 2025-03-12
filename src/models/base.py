@@ -1,4 +1,4 @@
-from typing import Type, Self, Any, TypeVar
+from typing import Type, Self, TypeVar
 
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
@@ -11,7 +11,6 @@ class BaseModel[T](SQLModel):
     """A superclass that acts as SQLModel, Strawberry GraphQL type and converts to gRPC Messages."""
 
     __grpc_model__: Type[T]
-    __strawberry_model__ = None
 
     def to_grpc(self) -> T:
         """Convert SQLModel instance to gRPC message."""
@@ -26,14 +25,4 @@ class BaseModel[T](SQLModel):
     @classmethod
     def from_grpc(cls, grpc_message: Message) -> Self:  # misc
         """Convert gRPC message to SQLModel instance."""
-        data_dict = MessageToDict(grpc_message, preserving_proto_field_name=True)
-        return cls(**data_dict)
-
-    def to_dict(self) -> dict[str, dict[str, Any]]:
-        """Convert model to dictionary (useful for JSON responses)."""
-        return self.model_dump()
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        """Create an instance from a dictionary."""
-        return cls(**data)
+        return cls(**MessageToDict(grpc_message, preserving_proto_field_name=True))

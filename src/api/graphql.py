@@ -14,11 +14,7 @@ async def get_book(id: int) -> Optional[Book]:
     b = await microservice_template_stub.GetBook(
         microservice_template_models.BookBase(id=id)
     )
-    print(b)
-    print(type(b))
-    a = Book.from_grpc(b)
-    print(type(a))
-    return a
+    return Book.from_grpc(b)
 
 
 @strawberry.type
