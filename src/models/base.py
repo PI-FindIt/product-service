@@ -23,6 +23,8 @@ class BaseModel[T](SQLModel):
     #     return self.__grpc_model__(**data)
 
     @classmethod
-    def from_grpc(cls, grpc_message: Message) -> Self:  # misc
+    def from_grpc(cls, grpc_message: Message) -> Self | None:  # misc
         """Convert gRPC message to SQLModel instance."""
+        if grpc_message is None:
+            return None
         return cls(**MessageToDict(grpc_message, preserving_proto_field_name=True))

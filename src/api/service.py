@@ -9,7 +9,7 @@ from src.models.book import CrudBook
 
 class MicroserviceTemplate(service_pb2_grpc.MicroserviceTemplateServicer):
     async def GetBook(
-        self, request: service_pb2.BookBase, context: grpc.ServicerContext
+        self, request: service_pb2.BookId, context: grpc.ServicerContext
     ) -> service_pb2.Book:
         crud = CrudBook()
         book = await crud.get(id=request.id)
