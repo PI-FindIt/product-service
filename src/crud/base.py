@@ -48,7 +48,6 @@ class CRUDBase[
     ) -> ModelType | None:
         if session is not None:
             return await session.get(self.model, id)
-
         async with get_postgres_session() as session:
             return await session.get(self.model, id)
 

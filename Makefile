@@ -38,7 +38,7 @@ PROTOBUF_SERVICE_SERVER_TEMPLATE := $(TEMPLATE_FOLDER)/service.template.py
 PROTOBUF_CONNECTIONS := protobuf/connections.py
 PROTOBUF_CONNECTIONS_TEMPLATE := $(TEMPLATE_FOLDER)/connections.template.py
 
-all: dev prod protobuf-create protobuf-gen merge-upstream-config
+all: dev prod protobuf-create protobuf-gen router-prefix-fastapi
 
 prepare-compose:
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g; s/kebab/$(PROJECT_NAME_KEBAB_CASE)/g' $(COMPOSE_TEMPLATE) > $(COMPOSE_FILE)
@@ -58,6 +58,8 @@ prepare-workflow:
 
 protobuf-gen:
 	python -m grpc_tools.protoc -I=$(PROTOBUF_FOLDER) --python_out=$(PROTOBUF_FOLDER) --grpc_python_out=$(PROTOBUF_FOLDER) --pyi_out=$(PROTOBUF_FOLDER) $(PROTOBUF_SERVICE_FILE)
+	$(SED) 's/import service_pb2/from . import service_pb2/g' $(PROTOBUF_FOLDER)/service_pb2_grpc.py > $(PROTOBUF_FOLDER)/service_pb2_grpc.py.tmp
+	mv $(PROTOBUF_FOLDER)/service_pb2_grpc.py.tmp $(PROTOBUF_FOLDER)/service_pb2_grpc.py
 
 protobuf-create:
 	git submodule update --init --recursive
@@ -66,6 +68,11 @@ protobuf-create:
 	$(SED) 's/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_SERVICE_FILE_TEMPLATE) > $(PROTOBUF_SERVICE_FILE)
 	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g; s/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_SERVICE_SERVER_TEMPLATE) > $(PROTOBUF_SERVICE_SERVER)
 	$(SED) 's/service_name/$(PROJECT_NAME_SNAKE_CASE)/g; s/service-name/$(PROJECT_NAME)/g; s/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_CONNECTIONS_TEMPLATE) >> $(PROTOBUF_CONNECTIONS)
+
+router-prefix-fastapi:
+	$(SED) 's/serviceName/$(PROJECT_NAME_KEBAB_CASE)/g' ./src/api/routes.py > ./src/api/routes.py.tmp
+	mv ./src/api/routes.py.tmp ./src/api/routes.py
+
 
 dev: prepare-dockerfile prepare-compose prepare-workflow
 

@@ -4,6 +4,7 @@ from typing import AsyncGenerator
 from alembic import command, config
 from sqlalchemy import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 from motor.motor_asyncio import AsyncIOMotorClient

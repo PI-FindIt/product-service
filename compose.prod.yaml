@@ -1,11 +1,10 @@
 services:
-  serviceName_postgres:
+  microservice-template_postgres:
     image: postgres:17-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
-
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 2s
@@ -15,17 +14,13 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:
-      - serviceName
-      - control-room_backend
-    labels:
-      - "traefik.http.routers.serviceName_postgres.rule=HostRegexp(`postgres\\..+`) && PathPrefix(`/kebab`)"
+      - microservice-template
 
-  serviceName_mongo:
+  microservice-template_mongo:
     image: mongo:8.0
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: root
-      MONGO_INITDB_DATABASE: mongo
     restart: unless-stopped
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
@@ -35,40 +30,34 @@ services:
     volumes:
       - mongo-data:/data/db
     networks:
-      - serviceName
-      - control-room_backend
-    labels:
-      - "traefik.http.routers.serviceName_mongo.rule=HostRegexp(`mongo\\..+`) && PathPrefix(`/kebab`)"
+      - microservice-template
 
-  serviceName:
+  microservice-template:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     restart: unless-stopped
+    env_file: .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-      POSTGRES_URL: serviceName_postgres
-      MONGO_DB: mongo
-      MONGO_URL: serviceName_mongo
+      - POSTGRES_URL=microservice-template_postgres
+      - MONGO_URL=microservice-template_mongo
     depends_on:
-      serviceName_postgres:
+      microservice-template_postgres:
         condition: service_healthy
-      serviceName_mongo:
+      microservice-template_mongo:
         condition: service_healthy
-    volumes:
-      - .:/serviceName
     tty: true
     networks:
-      - serviceName
+      - microservice-template
       - control-room_backend
     labels:
-      - "traefik.http.routers.serviceName.rule=HostRegexp(`api\\..+`) && PathPrefix(`/kebab`)"
+      - "traefik.http.routers.microservice-template.rule=HostRegexp(`api\..+`) && PathPrefix(`/microservice`)"
+
 
 networks:
-  serviceName:
+  microservice-template:
   control-room_backend:
     external: true
+
 volumes:
   postgres-data:
   mongo-data:
