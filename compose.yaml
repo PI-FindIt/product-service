@@ -18,7 +18,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - microservice-template
-      - control-room_backend
+      - findit_backend
     labels:
       - "traefik.http.routers.microservice-template_postgres.rule=HostRegexp(`postgres\\..+`) && PathPrefix(`/microservice`)"
 
@@ -38,7 +38,7 @@ services:
       - mongo-data:/data/db
     networks:
       - microservice-template
-      - control-room_backend
+      - findit_backend
     labels:
       - "traefik.http.routers.microservice-template_mongo.rule=HostRegexp(`mongo\\..+`) && PathPrefix(`/microservice`)"
 
@@ -63,13 +63,13 @@ services:
     tty: true
     networks:
       - microservice-template
-      - control-room_backend
+      - findit_backend
     labels:
       - "traefik.http.routers.microservice-template.rule=HostRegexp(`api\\..+`) && PathPrefix(`/microservice`)"
 
 networks:
   microservice-template:
-  control-room_backend:
+  findit_backend:
     external: true
 volumes:
   postgres-data:

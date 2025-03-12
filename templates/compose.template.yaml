@@ -16,7 +16,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - serviceName
-      - control-room_backend
+      - findit_backend
     labels:
       - "traefik.http.routers.serviceName_postgres.rule=HostRegexp(`postgres\\..+`) && PathPrefix(`/kebab`)"
 
@@ -36,7 +36,7 @@ services:
       - mongo-data:/data/db
     networks:
       - serviceName
-      - control-room_backend
+      - findit_backend
     labels:
       - "traefik.http.routers.serviceName_mongo.rule=HostRegexp(`mongo\\..+`) && PathPrefix(`/kebab`)"
 
@@ -61,13 +61,13 @@ services:
     tty: true
     networks:
       - serviceName
-      - control-room_backend
+      - findit_backend
     labels:
       - "traefik.http.routers.serviceName.rule=HostRegexp(`api\\..+`) && PathPrefix(`/kebab`)"
 
 networks:
   serviceName:
-  control-room_backend:
+  findit_backend:
     external: true
 volumes:
   postgres-data:
