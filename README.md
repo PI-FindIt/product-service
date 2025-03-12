@@ -12,6 +12,13 @@ Template repository to easily create microservices
 8. Run `make all` to generate code regarding Docker, CI/CD and gRPC
 9. Commit & push changes
 
+## Useful `make` commands
+- `make merge-upstream`: Merge the upstream changes from [`service-template`](https://github.com/PI-FindIt/service-template) into the current branch
+- `make protobuf-gen`: Generate the Python code from the microservice Protobuf files
+- `make message=<name> migration-new`: Create a new Alembic migration. Takes a `message` argument.
+- `make migration-upgrade`: Upgrade the database to the latest migration (automatically done by FastAPI)
+- `make migration-downgrade`: Downgrade the database to the previous migration
+
 ## Common ports
 There are no ports exposed to the host machine by default.
 All services are exposed via Traefik, a reverse proxy.

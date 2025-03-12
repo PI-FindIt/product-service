@@ -38,7 +38,7 @@ PROTOBUF_SERVICE_SERVER_TEMPLATE := $(TEMPLATE_FOLDER)/service.template.py
 PROTOBUF_CONNECTIONS := protobuf/connections.py
 PROTOBUF_CONNECTIONS_TEMPLATE := $(TEMPLATE_FOLDER)/connections.template.py
 
-all: dev prod protobuf-create protobuf-gen router-prefix-fastapi
+all: dev prod protobuf-create protobuf-gen router-prefix-fastapi merge-upstream-config
 
 prepare-compose:
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g; s/kebab/$(PROJECT_NAME_KEBAB_CASE)/g' $(COMPOSE_TEMPLATE) > $(COMPOSE_FILE)
@@ -81,6 +81,16 @@ prod: prepare-dockerfile-prod prepare-compose-prod prepare-workflow
 clean:
 	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE) $(PROTOBUF_SERVICE_SERVER)
 	rm -rf $(PROTOBUF_FOLDER)
+	git remote remove upstream
+
+migration-new:
+	alembic revision --autogenerate -m "$(message)"
+
+migration-upgrade:
+	alembic upgrade head
+
+migration-downgrade:
+	alembic downgrade -1
 
 merge-upstream-config:
 	git remote add upstream git@github.com:PI-FindIt/service-template.git
