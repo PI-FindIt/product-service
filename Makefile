@@ -38,7 +38,7 @@ PROTOBUF_SERVICE_SERVER_TEMPLATE := $(TEMPLATE_FOLDER)/service.template.py
 PROTOBUF_CONNECTIONS := protobuf/connections.py
 PROTOBUF_CONNECTIONS_TEMPLATE := $(TEMPLATE_FOLDER)/connections.template.py
 
-all: dev prod protobuf-create protobuf-gen
+all: dev prod protobuf-create protobuf-gen merge-upstream-config
 
 prepare-compose:
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g; s/kebab/$(PROJECT_NAME_KEBAB_CASE)/g' $(COMPOSE_TEMPLATE) > $(COMPOSE_FILE)
@@ -74,3 +74,12 @@ prod: prepare-dockerfile-prod prepare-compose-prod prepare-workflow
 clean:
 	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE) $(PROTOBUF_SERVICE_SERVER)
 	rm -rf $(PROTOBUF_FOLDER)
+
+merge-upstream-config:
+	git remote add upstream git@github.com:PI-FindIt/service-template.git
+	git fetch upstream
+	git merge upstream/main --alow-unrelated-histories
+
+merge-upstream:
+	git fetch upstream
+	git merge upstream/main
