@@ -1,13 +1,19 @@
 syntax = "proto3";
 
 service ServiceName {
-    rpc SayHello (HelloRequest) returns (HelloReply);
+    rpc CreateModel (ModelBase) returns (Model);
+    rpc GetModel (ModelId) returns (Model);
 }
 
-message HelloRequest {
-    string name = 1;
+message ModelId {
+    int32 id = 1;
 }
 
-message HelloReply {
-    string message = 1;
+message ModelBase {
+    string example = 1;
+}
+
+message Model {
+    int32 id = 1;
+    string example = 2;
 }

@@ -95,7 +95,7 @@ migration-downgrade:
 merge-upstream-config:
 	git remote add upstream git@github.com:PI-FindIt/service-template.git
 	git fetch upstream
-	git merge upstream/main --alow-unrelated-histories
+	git merge upstream/main --allow-unrelated-histories
 
 merge-upstream:
 	git fetch upstream
