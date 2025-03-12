@@ -1,8 +1,6 @@
 from fastapi import APIRouter
 
-
-path_prefix = "/microservice"
-router = APIRouter(prefix=path_prefix)
+router = APIRouter()
 
 
 @router.get("")

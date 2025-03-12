@@ -9,7 +9,7 @@ class ServiceName(service_pb2_grpc.ServiceNameServicer):
     async def CreateModel(
         self, request: service_pb2.ModelBase, context: grpc.ServicerContext
     ) -> service_pb2.Model:
-        return service_pb2.Model(id=0, message=f"Hello, I'm CreateModel!")
+        return service_pb2.Model(id=0, example=f"Hello, I'm CreateModel!")
 
     async def GetModel(
         self, request: service_pb2.ModelId, context: grpc.ServicerContext
@@ -22,7 +22,7 @@ class ServiceName(service_pb2_grpc.ServiceNameServicer):
         #     context.set_details("Book not found")
         #     return service_pb2.Book()
         # return book.to_grpc()
-        return service_pb2.Model(id=0, message=f"Hello, I'm GetModel!")
+        return service_pb2.Model(id=0, example=f"Hello, I'm GetModel!")
 
 
 async def serve_grpc() -> None:
