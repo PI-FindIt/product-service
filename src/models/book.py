@@ -1,5 +1,4 @@
-import dataclasses
-from typing import Optional, Any
+from typing import Optional
 
 import strawberry
 from sqlmodel import Field, SQLModel
@@ -9,13 +8,14 @@ from src.crud.base import CRUDBase
 from src.models.base import BaseModel
 
 
-# @dataclasses.dat  aclass
+@strawberry.type
 class _BookAttr(SQLModel):
     title: str
     author: str
     year: int
 
 
+@strawberry.type
 class BookBase(BaseModel[microservice_template_models.BookBase], _BookAttr):
     __grpc_model__ = microservice_template_models.BookBase
 

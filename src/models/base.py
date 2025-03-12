@@ -1,10 +1,8 @@
-from typing import Type, Self, Any, TypeVar, ClassVar
+from typing import Type, Self, Any, TypeVar
 
-import strawberry
-from google.protobuf.json_format import ParseDict, MessageToDict
+from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
 from sqlmodel import SQLModel
-
 
 T = TypeVar("T", bound=Message)
 
@@ -13,25 +11,7 @@ class BaseModel[T](SQLModel):
     """A superclass that acts as SQLModel, Strawberry GraphQL type and converts to gRPC Messages."""
 
     __grpc_model__: Type[T]
-
     __strawberry_model__ = None
-    # __strawberry_type__: ClassVar[type] = None
-
-    # def __init_subclass__(cls, **kwargs: dict[str, Any]) -> None:
-    #     super().__init_subclass__(**kwargs)
-    #
-    #     @strawberry.experimental.pydantic.type(model=cls, all_fields=True)
-    #     class _StrawberryType:
-    #         pass
-    #
-    #     cls.__strawberry_model__ = _StrawberryType
-    #     cls.__strawberry_type__ = strawberry.type(
-    #         cls.__strawberry_model__, name=cls.__name__
-    #     )
-    #
-    # def to_strawberry(self) -> StrawberryTypeFromPydantic[Self]:
-    #     """Convert SQLModel instance to Strawberry type."""
-    #     return self.__strawberry_model__.from_pydantic(self)
 
     def to_grpc(self) -> T:
         """Convert SQLModel instance to gRPC message."""
