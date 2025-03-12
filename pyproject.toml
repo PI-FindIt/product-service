@@ -20,7 +20,8 @@ dependencies = [
     "uvicorn (>=0.34.0,<0.35.0)",
     "orjson (>=3.10.15,<4.0.0)",
     "asyncpg (>=0.30.0,<0.31.0)",
-    "strawberry-graphql[fastapi] (>=0.262.1,<0.263.0)",
+    "strawberry-graphql[debug-server] (>=0.262.1,<0.263.0)",
+    "mypy (>=1.15.0,<2.0.0)",
 ]
 
 [tool.poetry]
@@ -29,7 +30,6 @@ package-mode = false
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.5"
 pytest-asyncio = "^0.25.3"
-mypy = "^1.15.0"
 black = "^25.1.0"
 isort = "^6.0.1"
 sqlalchemy-stubs = "^0.4"
