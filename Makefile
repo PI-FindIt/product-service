@@ -73,6 +73,7 @@ protobuf-gen:
 
 protobuf-create:
 	git submodule update --init --recursive
+	cd protobuf && git checkout main && cd ..
 	mkdir -p $(PROTOBUF_FOLDER)
 	touch $(PROTOBUF_FOLDER)/__init__.py
 	$(SED) 's/ServiceName/$(PROJECT_NAME_PASCAL_CASE)/g' $(PROTOBUF_SERVICE_FILE_TEMPLATE) > $(PROTOBUF_SERVICE_FILE)
@@ -105,6 +106,7 @@ migration-downgrade:
 	alembic downgrade -1
 
 merge-upstream-config:
+	git checkout main
 	git remote add upstream git@github.com:PI-FindIt/service-template.git
 	git fetch upstream
 	git merge upstream/main --allow-unrelated-histories
