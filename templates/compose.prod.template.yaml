@@ -48,15 +48,13 @@ services:
     tty: true
     networks:
       - serviceName
-      - findit_backend
+      - backend
     labels:
       - "traefik.http.routers.serviceName.rule=HostRegexp(`api\\..+`) && PathPrefix(`/kebab`)"
 
 
 networks:
   serviceName:
-  findit_backend:
-    external: true
 
 volumes:
   postgres-data:
