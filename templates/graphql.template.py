@@ -3,13 +3,13 @@ from typing import Callable, Awaitable, Type, TypeVar
 import strawberry
 from google.protobuf.message import Message
 from grpc.aio import AioRpcError  # type: ignore
+from src.models.model import Model, ModelBase
 
 from protobuf.connections import (
     service_name_stub,
     service_name_models,
 )
 from src.models.base import BaseModel
-from src.models.model import Model, ModelBase
 
 ModelType = TypeVar("ModelType", bound=BaseModel)  # type: ignore
 
@@ -34,27 +34,23 @@ async def make_grpc_call(
         raise Exception(e.details())
 
 
-async def create_model(model: ModelBase) -> Model:
-    return await make_grpc_call(
-        service_name_stub.CreateModel,
-        Model,
-        model.to_grpc(),
-    )
-
-
-async def get_model(id: int) -> Model:
-    return await make_grpc_call(
-        service_name_stub.GetModel,
-        Model,
-        service_name_models.ModelId(id=id),
-    )
-
-
 @strawberry.type
 class Query:
-    get_model: Model = strawberry.field(resolver=get_model)
+    @strawberry.field
+    async def get_model(self, id: int) -> Model:
+        return await make_grpc_call(
+            service_name_stub.GetModel,
+            Model,
+            service_name_models.ModelId(id=id),
+        )
 
 
 @strawberry.type
 class Mutation:
-    create_model: Model = strawberry.field(resolver=create_model)
+    @strawberry.mutation
+    async def add_book(self, model: ModelBase) -> Model:
+        return await make_grpc_call(
+            service_name_stub.CreateModel,
+            Model,
+            model.to_grpc(),
+        )
