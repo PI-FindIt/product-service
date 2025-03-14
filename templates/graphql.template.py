@@ -48,7 +48,7 @@ class Query:
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    async def add_book(self, model: ModelBase) -> Model:
+    async def create_model(self, model: ModelBase) -> Model:
         return await make_grpc_call(
             service_name_stub.CreateModel,
             Model,
