@@ -4,25 +4,32 @@ import grpc  # type: ignore
 import protobuf.service_name.service_pb2 as service_pb2
 import protobuf.service_name.service_pb2_grpc as service_pb2_grpc
 
+from src.crud.model import CrudModel
+from src.models.model import ModelBase
+
 
 class ServiceName(service_pb2_grpc.ServiceNameServicer):
     async def CreateModel(
         self, request: service_pb2.ModelBase, context: grpc.ServicerContext
     ) -> service_pb2.Model:
-        return service_pb2.Model(id=0, example=f"Hello, I'm CreateModel!")
+        crud = CrudModel()
+        model = await crud.create(ModelBase.from_grpc(request))
+        if model is None:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details("Model not found")
+            return service_pb2.Model()
+        return model.to_grpc()
 
     async def GetModel(
         self, request: service_pb2.ModelId, context: grpc.ServicerContext
     ) -> service_pb2.Model:
-        # *Example*
-        # crud = CrudBook()
-        # book = await crud.get(id=request.id)
-        # if book is None:
-        #     context.set_code(grpc.StatusCode.NOT_FOUND)
-        #     context.set_details("Book not found")
-        #     return service_pb2.Book()
-        # return book.to_grpc()
-        return service_pb2.Model(id=0, example=f"Hello, I'm GetModel!")
+        crud = CrudModel()
+        model = await crud.get(id=request.id)
+        if model is None:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details("Model not found")
+            return service_pb2.Model()
+        return model.to_grpc()
 
 
 async def serve_grpc() -> None:
