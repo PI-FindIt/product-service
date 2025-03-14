@@ -4,18 +4,18 @@ from typing import AsyncGenerator
 from alembic import command, config
 from sqlalchemy import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
-from sqlalchemy.orm import sessionmaker
 from sqlmodel import create_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
-from motor.motor_asyncio import AsyncIOMotorClient
-from odmantic import AIOEngine
 
 from src.config.settings import settings
 
+# from motor.motor_asyncio import AsyncIOMotorClient
+# from odmantic import AIOEngine
+
 postgres_engine = AsyncEngine(create_engine(settings.POSTGRES_URI, future=True))
 
-_mongo_client: AsyncIOMotorClient = AsyncIOMotorClient(settings.MONGO_URI)
-mongo_engine = AIOEngine(client=_mongo_client, database=settings.MONGO_DB)
+# _mongo_client: AsyncIOMotorClient = AsyncIOMotorClient(settings.MONGO_URI)
+# mongo_engine = AIOEngine(client=_mongo_client, database=settings.MONGO_DB)
 
 
 def run_postgres_upgrade(connection: Connection, cfg: config.Config) -> None:

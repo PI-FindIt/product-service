@@ -16,21 +16,21 @@ services:
     networks:
       - serviceName
 
-  serviceName_mongo:
-    image: mongo:8.0
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
-    restart: unless-stopped
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 2s
-      timeout: 10s
-      retries: 5
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - serviceName
+#  serviceName_mongo:
+#    image: mongo:8.0
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: root
+#    restart: unless-stopped
+#    healthcheck:
+#      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+#      interval: 2s
+#      timeout: 10s
+#      retries: 5
+#    volumes:
+#      - mongo-data:/data/db
+#    networks:
+#      - serviceName
 
   serviceName:
     build:
@@ -43,12 +43,15 @@ services:
     depends_on:
       serviceName_postgres:
         condition: service_healthy
-      serviceName_mongo:
+      elasticsearch:
         condition: service_healthy
+#      serviceName_mongo:
+#        condition: service_healthy
     tty: true
     networks:
       - serviceName
       - backend
+      - analytics
     labels:
       - "traefik.http.routers.serviceName.rule=HostRegexp(`api\\..+`) && PathPrefix(`/kebab`)"
 
