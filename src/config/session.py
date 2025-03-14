@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from alembic import command, config
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from sqlalchemy import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
 from sqlmodel import create_engine
@@ -16,6 +17,8 @@ postgres_engine = AsyncEngine(create_engine(settings.POSTGRES_URI, future=True))
 
 # _mongo_client: AsyncIOMotorClient = AsyncIOMotorClient(settings.MONGO_URI)
 # mongo_engine = AIOEngine(client=_mongo_client, database=settings.MONGO_DB)
+
+SQLAlchemyInstrumentor().instrument(engine=postgres_engine.sync_engine)
 
 
 def run_postgres_upgrade(connection: Connection, cfg: config.Config) -> None:

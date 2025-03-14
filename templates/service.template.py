@@ -3,9 +3,13 @@ from concurrent import futures
 import grpc  # type: ignore
 import protobuf.service_name.service_pb2 as service_pb2
 import protobuf.service_name.service_pb2_grpc as service_pb2_grpc
+from opentelemetry.instrumentation.grpc import GrpcAioInstrumentorServer
+from src.models.model import ModelBase
 
 from src.crud.model import CrudModel
-from src.models.model import ModelBase
+
+grpc_server_instrumentor = GrpcAioInstrumentorServer()
+grpc_server_instrumentor.instrument()
 
 
 class ServiceName(service_pb2_grpc.ServiceNameServicer):
