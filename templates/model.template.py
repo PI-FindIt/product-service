@@ -13,7 +13,7 @@ class _ModelAttr(PydanticBaseModel):
     example: str
 
 
-@strawberry.type
+@strawberry.input
 class ModelBase(BaseModel[service_name_models.ModelBase], _ModelAttr):
     __grpc_model__ = service_name_models.ModelBase
 
