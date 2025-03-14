@@ -10,11 +10,12 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from src.api.graphql import Query, Mutation
-from src.api.service import serve_grpc
+from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 
+from src.api.graphql import Query, Mutation
 from src.api.routes import router
+from src.api.service import serve_grpc
 from src.config.session import init_postgres_db
 
 
@@ -25,7 +26,11 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
 
-schema = strawberry.Schema(query=Query, mutation=Mutation)
+schema = strawberry.Schema(
+    query=Query,
+    mutation=Mutation,
+    extensions=[OpenTelemetryExtension],
+)
 graphql_app = GraphQLRouter(schema)
 
 app = FastAPI(title="ServiceName", lifespan=lifespan)
