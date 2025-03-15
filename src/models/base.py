@@ -1,13 +1,11 @@
-from typing import Type, Self, TypeVar
+from typing import Type, Self
 
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.message import Message
 from sqlmodel import SQLModel
 
-T = TypeVar("T", bound=Message)
 
-
-class BaseModel[T](SQLModel):
+class BaseModel[T: Message](SQLModel):
     """A superclass that acts as SQLModel, Strawberry GraphQL type and converts to gRPC Messages."""
 
     __grpc_model__: Type[T]
