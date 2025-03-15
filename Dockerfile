@@ -8,8 +8,7 @@ WORKDIR /product-service
 RUN pip install --no-cache poetry
 
 COPY poetry.lock pyproject.toml ./
-RUN poetry config virtualenvs.in-project false && poetry env use python
-RUN poetry install --with dev
+RUN poetry config virtualenvs.in-project false && poetry env use python && poetry install --with dev
 
 EXPOSE 8000
-CMD poetry run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+CMD [ "poetry", "run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
