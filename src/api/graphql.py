@@ -11,14 +11,12 @@ from protobuf.connections import (
 )
 from src.models.base import BaseModel
 
-ModelType = TypeVar("ModelType", bound=BaseModel)  # type: ignore
 
-
-async def make_grpc_call(
+async def make_grpc_call[T: BaseModel](  # type: ignore
     stub_method: Callable[[Message], Awaitable[Message]],
-    response_model_cls: Type[ModelType],
+    response_model_cls: Type[T],
     *request_message: Message,
-) -> ModelType:
+) -> T:
     """
     Make a gRPC call and return the response.
 
