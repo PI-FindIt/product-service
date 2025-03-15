@@ -21,9 +21,6 @@ config.set_main_option("sqlalchemy.url", settings.POSTGRES_URI)
 # target_metadata = mymodel.Base.metada ta
 target_metadata = SQLModel.metadata
 
-#'postgresql+asyncpg://postgres:postgres@postgres:5432/postgres'
-
-
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
