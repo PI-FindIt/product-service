@@ -30,6 +30,8 @@ DOCKERFILE_PROD_TEMPLATE := $(TEMPLATE_FOLDER)/Dockerfile.template.prod
 
 WORKFLOW_TEMPLATE := $(TEMPLATE_FOLDER)/submodule.template.yaml
 WORKFLOW_FILE := .github/workflows/submodule.yaml
+SONAR_TEMPLATE := $(TEMPLATE_FOLDER)/sonar.template.yaml
+SONAR_FILE := .github/workflows/sonar.yaml
 
 PROTOBUF_FOLDER := protobuf/$(PROJECT_NAME_SNAKE_CASE)
 PROTOBUF_SERVICE_FILE := $(PROTOBUF_FOLDER)/service.proto
@@ -65,6 +67,7 @@ prepare-dockerfile-prod:
 prepare-workflow:
 	mkdir -p .github/workflows
 	$(SED) 's/serviceName/$(PROJECT_NAME)/g' $(WORKFLOW_TEMPLATE) > $(WORKFLOW_FILE)
+	cp $(SONAR_TEMPLATE) $(SONAR_FILE)
 
 protobuf-gen:
 	python -m grpc_tools.protoc -I=$(PROTOBUF_FOLDER) --python_out=$(PROTOBUF_FOLDER) --grpc_python_out=$(PROTOBUF_FOLDER) --pyi_out=$(PROTOBUF_FOLDER) $(PROTOBUF_SERVICE_FILE)
@@ -92,7 +95,7 @@ dev: prepare-dockerfile prepare-compose prepare-workflow
 prod: prepare-dockerfile-prod prepare-compose-prod prepare-workflow
 
 clean:
-	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE) $(PROTOBUF_SERVICE_SERVER) $(GRAPHQL_FILE) $(MODEL_FILE) $(MAIN_FILE)
+	rm -f $(COMPOSE_FILE) $(COMPOSE_PROD_FILE) $(DOCKERFILE) $(DOCKERFILE_PROD) $(WORKFLOW_FILE) $(PROTOBUF_SERVICE_SERVER) $(GRAPHQL_FILE) $(MODEL_FILE) $(MAIN_FILE) $(SONAR_FILE)
 	rm -rf $(PROTOBUF_FOLDER)
 	git remote remove upstream
 
