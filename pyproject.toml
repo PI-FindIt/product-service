@@ -1,5 +1,5 @@
 [project]
-name = "microservice-template"
+name = "product-service"
 version = "0.1.0"
 description = ""
 authors = [
