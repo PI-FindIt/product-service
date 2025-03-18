@@ -6,6 +6,12 @@ export.json -> non filtered dataset
 
 filtered.json -> filtered dataset
 
+To use it you must extract the dataset.tar.zst file
+use the following command
+```bash
+tar -I zstd -xvf dataset.tar.zst
+```
+
 --------------------------------------------
 
 script1.py -> script to filter the dataset
