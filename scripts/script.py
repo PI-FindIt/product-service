@@ -64,6 +64,7 @@ keys = [
     # after that filter inside by front_pt or front_en, and ingredients_en or ingredients_pt
     ("images", "images"),
     ("nutriments", "nutriments"),
+    ("stores", "stores"),
 ]
 
 all_data = json.load(open("export.json"))
@@ -99,6 +100,8 @@ for product in all_data:
                     f"{code}{ingredients_img}.{l[ingredients_img]['rev']}.full.jpg"
                 )
                 product[a] = images
+            if a == "stores":
+                product[a] = product[a].split(",")
 
             product_data[b] = product[a]
 

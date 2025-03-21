@@ -36,6 +36,7 @@ class Product:
     unit: str
     keywords: list[str]
     brands: list[str]
+    stores: list[str]
     images: dict[str, str]
     nutriments: dict[str, str]
 
@@ -124,6 +125,7 @@ def load_products_from_json(json_path: str) -> list[Product]:
             brands=item.get("brands_tags", []),
             images=item.get("images", {}),
             nutriments=item.get("nutriments", {}),
+            stores=item.get("stores", []),
         )
 
         # Process categories
@@ -141,51 +143,6 @@ def load_products_from_json(json_path: str) -> list[Product]:
 
 # ... [Keep all previous code unchanged until main block] ...
 
-
-def generate_sql(products: list[Product]) -> str:
-    # Create mapping of categories to IDs
-    category_ids = {cat: idx + 1 for idx, cat in enumerate(all_categories)}
-
-    # Generate category inserts
-    category_sql = ["-- Category Inserts"]
-    for cat in all_categories:
-        parent_id = category_ids.get(cat.parent, "NULL")
-        category_sql.append(
-            f"INSERT INTO category (id, name, parent_id) VALUES "
-            f"({category_ids[cat]}, '{cat.name.replace("'", "''")}', {parent_id if parent_id else 'NULL'});"
-        )
-
-    # Create product to terminal category mapping
-    product_category_map = {}
-    for cat in all_categories:
-        for product in cat.products:
-            product_category_map[product.ean] = category_ids[cat]
-
-    # Generate product inserts
-    product_sql = ["\n-- Product Inserts"]
-    for product in products:
-        terminal_cat_id = product_category_map.get(product.ean, "NULL")
-
-        # Escape special characters
-        def escape(s: str) -> str:
-            return s.replace("'", "''").replace("%", "%%") if s else ""
-
-        product_sql.append(
-            f"INSERT INTO product (ean, name, generic_name, nutri_score, ingredients, quantity, unit, keywords, brands, terminal_category_id) VALUES ("
-            f"'{product.ean}', "
-            f"'{escape(product.name)}', "
-            f"'{escape(product.generic_name)}', "
-            f"'{product.nutri_score.value.upper() if product.nutri_score else 'NULL'}', "
-            f"'{escape(product.ingredients)}', "
-            f"'{escape(product.quantity)}', "
-            f"'{escape(product.unit)}', "
-            f"'{escape(', '.join(product.keywords))}', "
-            f"'{escape(', '.join(product.brands))}', "
-            f"{terminal_cat_id}"
-            ");"
-        )
-
-    return "\n".join(category_sql + product_sql)
 
 
 def generate_sql_general(products: list[Product]) -> str:
@@ -217,6 +174,7 @@ def generate_sql_general(products: list[Product]) -> str:
                 ("quantity", lambda p, _: p.quantity),
                 ("unit", lambda p, _: p.unit),
                 ("keywords", lambda p, _: p.keywords),
+                ("stores", lambda p, _: json.dumps(p.stores)),
                 ("brands", lambda p, _: p.brands),
                 ("images", lambda p, _: json.dumps(p.images)),
                 ("nutriments", lambda p, _: json.dumps(p.nutriments)),
@@ -249,7 +207,7 @@ def generate_sql_general(products: list[Product]) -> str:
     for table, config in table_config.items():
         sql.append(f"CREATE SEQUENCE IF NOT EXISTS {config['sequence']};")
     sql.append("-- TYPE")
-    sql.append(f"CREATE TYPE nutri_score AS ENUM ('A', 'B', 'C', 'D', 'E', 'UNKNOWN', 'NOT-APPLICABLE');",)
+    sql.append("CREATE TYPE nutri_score AS ENUM ('A', 'B', 'C', 'D', 'E', 'UNKNOWN', 'NOT-APPLICABLE');",)
     # Create tables
     sql.append("\n-- TABLES")
     sql.append(
@@ -269,6 +227,7 @@ def generate_sql_general(products: list[Product]) -> str:
         unit TEXT,
         keywords TEXT[],
         brands TEXT[],
+        stores TEXT[],
         images JSONB,
         nutriments JSONB,
         terminal_category_id INTEGER REFERENCES category(id)
