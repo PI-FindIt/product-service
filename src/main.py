@@ -15,14 +15,12 @@ from strawberry.fastapi import GraphQLRouter
 
 from src.api.graphql import Query, Mutation
 from src.api.routes import router
-from src.api.service import serve_grpc
 from src.config.session import init_postgres_db
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     await init_postgres_db()
-    asyncio.create_task(serve_grpc())
     yield
 
 

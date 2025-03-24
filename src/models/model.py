@@ -4,9 +4,9 @@ import strawberry
 from pydantic import BaseModel as PydanticBaseModel
 from sqlmodel import Field
 
-from protobuf.connections import product_service_models
 from src.models.base import BaseModel
 from enum import Enum
+
 
 class NutriScore(Enum):
     A = "A"
@@ -30,12 +30,13 @@ class Nutrition:
 class _CategoryAttr(PydanticBaseModel):
     name: str
 
-@strawberry.type
-class CategoryBase(BaseModel[product_service_models.CategoryBase], _CategoryAttr):
-    __grpc_model__ = product_service_models.CategoryBase
 
 @strawberry.type
-class Category(BaseModel[product_service_models.Category], _CategoryAttr, table=True):
+class CategoryBase(BaseModel, _CategoryAttr): ...
+
+
+@strawberry.type
+class Category(BaseModel, _CategoryAttr, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     parents: list["Category"]
 
@@ -59,12 +60,9 @@ class _ProductAttr(PydanticBaseModel):
 
 
 @strawberry.input
-class ProductBase(BaseModel[product_service_models.ProductBase], _ProductAttr):
-    __grpc_model__ = product_service_models.ProductBase
+class ProductBase(BaseModel, _ProductAttr): ...
 
 
 @strawberry.type
-class Product(BaseModel[product_service_models.Product], _ProductAttr, table=True):
+class Product(BaseModel, _ProductAttr, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-
-    __grpc_model__ = product_service_models.Product
