@@ -157,6 +157,10 @@ def generate_sql_general(products: list[Product]) -> str:
                     "parent_id",
                     lambda cat, ctx: ctx["category_ids"].get(cat.parent, None),
                 ),
+                (
+                    "parent_name",
+                    lambda cat, _: cat.parent.name if cat.parent else None,
+                ),
             ],
             "sequence": "category_id_seq",
         },
@@ -179,8 +183,8 @@ def generate_sql_general(products: list[Product]) -> str:
                 ("images", lambda p, _: json.dumps(p.images)),
                 ("nutriments", lambda p, _: json.dumps(p.nutriments)),
                 (
-                    "terminal_category_id",
-                    lambda p, ctx: ctx["product_category_map"].get(p.ean),
+                    "terminal_category",
+                    lambda p, ctx: ctx["product_category_map"].get(p.name),
                 ),
             ],
             "sequence": "product_ean_seq",
@@ -189,18 +193,23 @@ def generate_sql_general(products: list[Product]) -> str:
 
     # Create category mapping and context
     category_ids = {cat: idx + 1 for idx, cat in enumerate(all_categories)}
-    product_category_map = {}
+    category_names = {idx + 1: cat.name for idx, cat in enumerate(all_categories)}
+    product_category_map: dict[str, int | str] = {}
     for cat in all_categories:
         for product in cat.products:
             product_category_map[product.ean] = category_ids[cat]
+            product_category_map[product.name] = category_names[category_ids[cat]]
 
     context = {
         "category_ids": category_ids,
+        "category_names": category_names,
         "product_category_map": product_category_map,
     }
 
     # Generate SQL
     sql = []
+    csv_categories:list[str] = ["id,name,parent_id,parent_name"]
+
 
     # Create sequences
     sql.append("-- SEQUENCES")
@@ -216,6 +225,7 @@ def generate_sql_general(products: list[Product]) -> str:
         id INTEGER PRIMARY KEY DEFAULT nextval('category_id_seq'),
         name TEXT NOT NULL,
         parent_id INTEGER REFERENCES category(id)
+        parent_name TEXT references category(name)
     );
     CREATE TABLE product (
         ean TEXT PRIMARY KEY,
@@ -230,7 +240,7 @@ def generate_sql_general(products: list[Product]) -> str:
         stores TEXT[],
         images JSONB,
         nutriments JSONB,
-        terminal_category_id INTEGER REFERENCES category(id)
+        terminal_category INTEGER REFERENCES category(name)
     );
     """
     )
@@ -268,8 +278,12 @@ def generate_sql_general(products: list[Product]) -> str:
                 f"INSERT INTO {table} ({', '.join(columns)}) "
                 f"VALUES ({', '.join(values)});"
             )
-
-    return "\n".join(sql)
+            csv_categories.append(
+                f"{','.join(values)}"
+            )
+    # remove ' from the csv.
+    csv_categories = [x.replace("'", "").replace("NULL", "") for x in csv_categories]
+    return "\n".join(sql) , "\n".join(csv_categories)
 
 
 # Example usage
@@ -299,10 +313,15 @@ if __name__ == "__main__":
             print_category(cat)
 
 
-    sql_script = generate_sql_general(products)
+    sql_script, csv_cat = generate_sql_general(products)
 
     # Save to file
     with open("database_population2.sql", "w", encoding="utf-8") as f:
         f.write(sql_script)
+
+    with open("categories.csv", "w", encoding="utf-8") as f:
+        f.write(csv_cat)
+
+
 
     print("SQL script generated successfully!")
