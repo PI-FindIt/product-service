@@ -1,9 +1,7 @@
-from typing import Callable, Awaitable, Type, TypeVar
-
 import strawberry
-from src.models.model import Model, ModelBase
-
 from src.models.base import BaseModel
+
+from src.models.product import Model, ModelBase
 
 
 @strawberry.type

@@ -24,16 +24,20 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
 
-schema = strawberry.Schema(
+schema = strawberry.federation.Schema(
     query=Query,
     mutation=Mutation,
     extensions=[OpenTelemetryExtension],
+    enable_federation_2=True,
 )
 graphql_app = GraphQLRouter(schema)
 
 app = FastAPI(title="Product Service", lifespan=lifespan)
-app.include_router(router, prefix="/product")
-app.include_router(graphql_app, prefix="/product/graphql")
+app.include_router(graphql_app, prefix="/graphql")
+
+@app.get("/ping")
+def ping() -> dict[str, str]:
+    return {"message": "pong"}
 
 resource = Resource(attributes={SERVICE_NAME: "user-service"})
 tracer = TracerProvider(resource=resource)
