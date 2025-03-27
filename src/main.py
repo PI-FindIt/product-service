@@ -1,4 +1,3 @@
-import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -14,7 +13,6 @@ from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 
 from src.api.graphql import Query, Mutation
-from src.api.routes import router
 from src.config.session import init_postgres_db
 
 
@@ -35,11 +33,13 @@ graphql_app = GraphQLRouter(schema)
 app = FastAPI(title="Product Service", lifespan=lifespan)
 app.include_router(graphql_app, prefix="/graphql")
 
+
 @app.get("/ping")
 def ping() -> dict[str, str]:
     return {"message": "pong"}
 
-resource = Resource(attributes={SERVICE_NAME: "user-service"})
+
+resource = Resource(attributes={SERVICE_NAME: "product-service"})
 tracer = TracerProvider(resource=resource)
 
 otlp_exporter = OTLPSpanExporter(
