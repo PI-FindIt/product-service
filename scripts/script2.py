@@ -4,6 +4,7 @@ import json
 from typing import Optional
 
 all_categories: list["Category"] = []
+all_brands: list["Brand"] = []
 
 
 class NutriScore(Enum):
@@ -35,7 +36,6 @@ class Product:
     quantity: str
     unit: str
     keywords: list[str]
-    brands: list[str]
     stores: list[str]
     images: dict[str, str]
     nutriments: dict[str, str]
@@ -54,6 +54,20 @@ class Category:
     products: list[Product]
     subcategories: list["Category"]
     parent: Optional["Category"] = None
+
+    def add_product(self, product: Product) -> None:
+        self.products.append(product)
+
+    def __hash__(self):
+        return hash(self.name)
+    
+
+@dataclass
+class Brand:
+    name: str
+    products: list[Product]
+    subbrands: list["Brand"]
+    parent: Optional["Brand"] = None
 
     def add_product(self, product: Product) -> None:
         self.products.append(product)
@@ -83,6 +97,27 @@ def find_or_create_category(
         parent.subcategories.append(new_cat)
     return new_cat
 
+def find_or_create_brand(
+    brand_name: str, parent: Optional[Brand] = None
+) -> Brand:
+    # Check if brand exists under parent
+    if parent:
+        for subbrand in parent.subbrands:
+            if subbrand.name == brand_name:
+                return subbrand
+    else:
+        # Check root brands
+        for br in all_brands:
+            if br.parent is None and br.name == brand_name:
+                return br
+
+    # Create new brand
+    new_br = Brand(name=brand_name, products=[], subbrands=[], parent=parent)
+    all_brands.append(new_br)
+    if parent:
+        parent.subbrands.append(new_br)
+    return new_br
+
 
 def process_categories_hierarchy(category_names: list[str], product: Product) -> None:
     current_parent = None
@@ -94,6 +129,18 @@ def process_categories_hierarchy(category_names: list[str], product: Product) ->
 
     if terminal_category:
         terminal_category.add_product(product)
+
+
+def process_brands_hierarchy(brand_names: list[str], product: Product) -> None:
+    current_parent = None
+    terminal_brand = None
+
+    for name in brand_names:
+        current_parent = find_or_create_brand(name, current_parent)
+        terminal_brand = current_parent
+
+    if terminal_brand:
+        terminal_brand.add_product(product)
 
 
 def load_products_from_json(json_path: str) -> list[Product]:
@@ -122,19 +169,26 @@ def load_products_from_json(json_path: str) -> list[Product]:
             quantity=item.get("quantity", ""),
             unit=item.get("product_quantity_unit", ""),
             keywords=item.get("_keywords", []),
-            brands=item.get("brands_tags", []),
             images=item.get("images", {}),
             nutriments=item.get("nutriments", {}),
             stores=item.get("stores", []),
         )
 
         # Process categories
-        raw_categories = item.get("categories_tags", [])
+        raw_categories = item.get("brands_tags", [])
         category_names = [
             c.replace("en:", "").strip() for c in raw_categories if c.strip()
         ]
         if category_names:
             process_categories_hierarchy(category_names, product)
+        
+        # Process brands
+        raw_brands = item.get("brands_tags", [])
+        brand_names = [
+            c.replace("en:", "").strip() for c in raw_brands if c.strip()
+        ]
+        if brand_names:
+            process_brands_hierarchy(brand_names, product)
 
         products.append(product)
 
@@ -164,6 +218,22 @@ def generate_sql_general(products: list[Product]) -> str:
             ],
             "sequence": "category_id_seq",
         },
+        "brand": {
+            "class": Brand,
+            "columns": [
+                ("id", lambda br, ctx: ctx["brand_ids"][br]),
+                ("name", lambda br, _: br.name),
+                (
+                    "parent_id",
+                    lambda br, ctx: ctx["brand_ids"].get(br.parent, None),
+                ),
+                (
+                    "parent_name",
+                    lambda br, _: br.parent.name if br.parent else None,
+                ),
+            ],
+            "sequence": "brand_id_seq",
+        },
         "product": {
             "class": Product,
             "columns": [
@@ -179,7 +249,6 @@ def generate_sql_general(products: list[Product]) -> str:
                 ("unit", lambda p, _: p.unit),
                 ("keywords", lambda p, _: p.keywords),
                 ("stores", lambda p, _: json.dumps(p.stores)),
-                ("brands", lambda p, _: p.brands),
                 ("images", lambda p, _: json.dumps(p.images)),
                 ("nutriments", lambda p, _: json.dumps(p.nutriments)),
                 (
@@ -200,15 +269,28 @@ def generate_sql_general(products: list[Product]) -> str:
             product_category_map[product.ean] = category_ids[cat]
             product_category_map[product.name] = category_names[category_ids[cat]]
 
+    # Create brand mapping and context
+    brand_ids = {br: idx + 1 for idx, br in enumerate(all_brands)}
+    brand_names = {idx + 1: br.name for idx, br in enumerate(all_brands)}
+    product_brand_map: dict[str, int | str] = {}
+    for br in all_brands:
+        for product in br.products:
+            product_brand_map[product.ean] = brand_ids[br]
+            product_brand_map[product.name] = brand_names[brand_ids[br]]
+
     context = {
         "category_ids": category_ids,
         "category_names": category_names,
         "product_category_map": product_category_map,
+        "brand_ids": brand_ids,
+        "brand_names": brand_names,
+        "product_brand_map": product_brand_map,
     }
 
     # Generate SQL
     sql = []
-    csv_categories:list[str] = ["id,name,parent_id,parent_name"]
+    csv_categories: list[str] = ["id,name,parent_id,parent_name"]
+    csv_brands: list[str] = ["id,name,parent_id,parent_name"]
 
 
     # Create sequences
@@ -226,6 +308,12 @@ def generate_sql_general(products: list[Product]) -> str:
         name TEXT NOT NULL,
         parent_id INTEGER REFERENCES category(id)
         parent_name TEXT references category(name)
+    );
+    CREATE TABLE brand (
+        id INTEGER PRIMARY KEY DEFAULT nextval('brand_id_seq'),
+        name TEXT NOT NULL,
+        parent_id INTEGER REFERENCES brand(id)
+        parent_name TEXT references brand(name)
     );
     CREATE TABLE product (
         ean TEXT PRIMARY KEY,
@@ -249,6 +337,8 @@ def generate_sql_general(products: list[Product]) -> str:
     for table, config in table_config.items():
         if table == "category":
             objects = all_categories
+        elif table == "brand":
+            objects = all_brands
         else:
             objects = products
 
@@ -281,9 +371,14 @@ def generate_sql_general(products: list[Product]) -> str:
             csv_categories.append(
                 f"{','.join(values)}"
             )
+            csv_brands.append(
+                f"{','.join(values)}"
+            )
+            
     # remove ' from the csv.
     csv_categories = [x.replace("'", "").replace("NULL", "") for x in csv_categories]
-    return "\n".join(sql) , "\n".join(csv_categories)
+    csv_brands = [x.replace("'", "").replace("NULL", "") for x in csv_brands]
+    return "\n".join(sql) , "\n".join(csv_categories), "\n".join(csv_brands)
 
 
 # Example usage
@@ -295,6 +390,8 @@ if __name__ == "__main__":
 
     # Print categories count
     print(f"Loaded {len(all_categories)} categories")
+
+    print(f"Loaded {len(all_brands)} brands")
 
     # Print categories hierarchy
     def print_category(cat: Category, level: int = 0):
@@ -313,7 +410,24 @@ if __name__ == "__main__":
             print_category(cat)
 
 
-    sql_script, csv_cat = generate_sql_general(products)
+    # Print brands hierarchy
+    def print_brand(br: Brand, level: int = 0):
+        indent = "  " * level
+        print(f"{indent}- {br.name} ({len(br.products)} products)")
+
+        for product in br.products:
+            print(f"{indent+indent}  - {product.name}")
+
+        for subbr in br.subbrands:
+            print_brand(subbr, level + 1)
+
+    # Print root categories
+    for br in all_brands:
+        if br.parent is None:
+            print_brand(br)
+
+
+    sql_script, csv_cat, csv_brands = generate_sql_general(products)
 
     # Save to file
     with open("database_population2.sql", "w", encoding="utf-8") as f:
@@ -322,6 +436,8 @@ if __name__ == "__main__":
     with open("categories.csv", "w", encoding="utf-8") as f:
         f.write(csv_cat)
 
+    with open("brands.csv", "w", encoding="utf-8") as f:
+        f.write(csv_brands)
 
 
     print("SQL script generated successfully!")
