@@ -188,7 +188,7 @@ def load_products_from_json(json_path: str) -> list[Product]:
             c.replace("en:", "").strip() for c in raw_brands if c.strip()
         ]
         if brand_names:
-            process_brands_hierarchy(brand_names, product)
+            process_brands_hierarchy(brand_names[::-1], product)
 
         products.append(product)
 
