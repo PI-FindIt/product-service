@@ -405,7 +405,6 @@ description = "GraphQL implementation for Python, a port of GraphQL.js, the Java
 optional = false
 python-versions = "<4,>=3.6"
 groups = ["main"]
-markers = "python_version < \"4.0\""
 files = [
     {file = "graphql_core-3.2.6-py3-none-any.whl", hash = "sha256:78b016718c161a6fb20a7d97bbf107f331cd1afe53e45566c59f776ed7f0b45f"},
     {file = "graphql_core-3.2.6.tar.gz", hash = "sha256:c08eec22f9e40f0bd61d805907e3b3b1b9a320bc606e23dc145eebca07c8fbab"},
@@ -1893,7 +1892,7 @@ files = [
 ]
 
 [package.dependencies]
-greenlet = {version = "!=0.4.17", markers = "python_version < \"3.14\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\")"}
+greenlet = {version = "!=0.4.17", optional = true, markers = "python_version < \"3.14\" and (platform_machine == \"aarch64\" or platform_machine == \"ppc64le\" or platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"AMD64\" or platform_machine == \"win32\" or platform_machine == \"WIN32\") or extra == \"asyncio\""}
 typing-extensions = ">=4.6.0"
 
 [package.extras]
@@ -1920,6 +1919,21 @@ postgresql-psycopg2cffi = ["psycopg2cffi"]
 postgresql-psycopgbinary = ["psycopg[binary] (>=3.0.7)"]
 pymysql = ["pymysql"]
 sqlcipher = ["sqlcipher3_binary"]
+
+[[package]]
+name = "sqlalchemy-filterset"
+version = "2.3.0"
+description = "An easy way to filter, sort, paginate SQLAlchemy queries"
+optional = false
+python-versions = "<4.0.0,>=3.7"
+groups = ["main"]
+files = [
+    {file = "sqlalchemy_filterset-2.3.0-py3-none-any.whl", hash = "sha256:3524fdbda14adf04dfde6e36d6422fa3c1fe0e220232c8db13eb0efa4e96ca9c"},
+    {file = "sqlalchemy_filterset-2.3.0.tar.gz", hash = "sha256:169912379434f2427dfe8a3fe54894dcc9f32f3132877de18e3c9970a5248d12"},
+]
+
+[package.dependencies]
+SQLAlchemy = {version = ">=2,<3", extras = ["asyncio"]}
 
 [[package]]
 name = "sqlalchemy-stubs"
@@ -2278,5 +2292,5 @@ type = ["pytest-mypy"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.12"
-content-hash = "6690a4722bef78487caafff0a759ecc7740b2629f54618f2b244c735f510d642"
+python-versions = ">=3.12,<4.0"
+content-hash = "2b48c428c0aee21f22ec273c7ac68d0ed5062906d79a3f5faa638005fff614dd"

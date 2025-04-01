@@ -1,24 +1,22 @@
 import strawberry
+
 from graphql import GraphQLError
-
-from src.crud.product import crud_product, CrudProduct
-from src.models.product import Product, ProductBase
-
-crud = CrudProduct()
+from src.crud import crud
+from src.models import Product, ProductBase
 
 
 @strawberry.type
 class Query:
     @strawberry.field()
     async def product(self, name: str) -> Product | None:
-        obj = await crud_product.get(name)
+        obj = await crud.get(name)
         if obj is None:
             return None
         return Product(**obj.model_dump())
 
     @strawberry.field()
     async def products(self, name: str) -> list[Product]:
-        objects = await crud_product.find(name)
+        objects = await crud.find(name)
         return [Product(**obj.model_dump()) for obj in objects]
 
 

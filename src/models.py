@@ -11,11 +11,10 @@ class Category:
 
     @strawberry.field()
     async def products(self) -> list["Product"]:
-        from src.crud.product import crud_product
+        from src.crud import crud
 
         return [
-            Product(**obj.model_dump())
-            for obj in await crud_product.get_by_category(self.name)
+            Product(**obj.model_dump()) for obj in await crud.get_by_category(self.name)
         ]
 
 
@@ -51,6 +50,9 @@ class ProductModel(SQLModel):
     category_name: str
 
 
+fields = set(ProductModel.__annotations__.keys()) - {"nutrition"}
+
+
 @strawberry.experimental.pydantic.input(model=NutritionModel, all_fields=True)
 class NutritionBase: ...
 
@@ -59,13 +61,13 @@ class NutritionBase: ...
 class Nutrition: ...
 
 
-@strawberry.experimental.pydantic.input(model=ProductModel, fields=["ean", "name"])
+@strawberry.experimental.pydantic.input(model=ProductModel, fields=list(fields))
 class ProductBase:
     nutrition: NutritionBase
 
 
 @strawberry.federation.type(keys=["ean"])
-@strawberry.experimental.pydantic.type(model=ProductModel, fields=["ean", "name"])
+@strawberry.experimental.pydantic.type(model=ProductModel, fields=list(fields))
 class Product:
     nutrition: Nutrition
 
@@ -75,9 +77,9 @@ class Product:
 
     @classmethod
     async def resolve_reference(cls, ean: strawberry.ID) -> Optional["Product"]:
-        from src.crud.product import crud_product
+        from src.crud import crud
 
-        product_model = await crud_product.get(ean)
+        product_model = await crud.get(ean)
         if product_model is None:
             print("a")
             return None

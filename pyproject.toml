@@ -3,10 +3,10 @@ name = "product-service"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "andre",email = "andrepedro2004@hotmail.com"}
+    { name = "andre", email = "andrepedro2004@hotmail.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "fastapi (>=0.115.11,<0.116.0)",
     "sqlmodel (>=0.0.23,<0.0.24)",
@@ -24,6 +24,7 @@ dependencies = [
     "opentelemetry-instrumentation-sqlalchemy (>=0.52b0,<0.53)",
     "opentelemetry-sdk (>=1.31.0,<2.0.0)",
     "opentelemetry-exporter-otlp (>=1.31.0,<2.0.0)",
+    "sqlalchemy-filterset (>=2.3.0,<3.0.0)",
 ]
 
 [tool.poetry]
