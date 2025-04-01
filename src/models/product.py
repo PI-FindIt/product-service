@@ -29,7 +29,7 @@ class NutriScore(Enum):
     NOT_APPLICABLE = "NOT-APPLICABLE"
 
 
-class Nutrition(SQLModel):
+class NutritionModel(SQLModel):
     saturated_fat: str
     fat: str
     salt: str
@@ -40,24 +40,35 @@ class ProductModel(SQLModel):
     ean: strawberry.ID = Field(primary_key=True)
     name: str
     generic_name: str
-    # nutrition: Nutrition
+    nutrition: NutritionModel
     nutri_score: NutriScore
     ingredients: str
     quantity: str
     unit: str
     keywords: list[str]
     images: tuple[str, ...]
-    brand_id: int = Field(foreign_key="brandmodel.id")
+    brand_id: int
     category_name: str
 
 
-@strawberry.experimental.pydantic.input(model=ProductModel, all_fields=True)
-class ProductBase: ...
+@strawberry.experimental.pydantic.input(model=NutritionModel, all_fields=True)
+class NutritionBase: ...
+
+
+@strawberry.experimental.pydantic.type(model=NutritionModel, all_fields=True)
+class Nutrition: ...
+
+
+@strawberry.experimental.pydantic.input(model=ProductModel, fields=["ean", "name"])
+class ProductBase:
+    nutrition: NutritionBase
 
 
 @strawberry.federation.type(keys=["ean"])
-@strawberry.experimental.pydantic.type(model=ProductModel, all_fields=True)
+@strawberry.experimental.pydantic.type(model=ProductModel, fields=["ean", "name"])
 class Product:
+    nutrition: Nutrition
+
     @strawberry.field()
     def category(self: ProductModel) -> Category:
         return Category(name=self.category_name)
