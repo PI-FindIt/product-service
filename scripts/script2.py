@@ -60,7 +60,7 @@ class Category:
 
     def __hash__(self):
         return hash(self.name)
-    
+
 
 @dataclass
 class Brand:
@@ -97,9 +97,8 @@ def find_or_create_category(
         parent.subcategories.append(new_cat)
     return new_cat
 
-def find_or_create_brand(
-    brand_name: str, parent: Optional[Brand] = None
-) -> Brand:
+
+def find_or_create_brand(brand_name: str, parent: Optional[Brand] = None) -> Brand:
     # Check if brand exists under parent
     if parent:
         for subbrand in parent.subbrands:
@@ -175,18 +174,16 @@ def load_products_from_json(json_path: str) -> list[Product]:
         )
 
         # Process categories
-        raw_categories = item.get("brands_tags", [])
+        raw_categories = item.get("category_tags", [])
         category_names = [
             c.replace("en:", "").strip() for c in raw_categories if c.strip()
         ]
         if category_names:
             process_categories_hierarchy(category_names, product)
-        
+
         # Process brands
         raw_brands = item.get("brands_tags", [])
-        brand_names = [
-            c.replace("en:", "").strip() for c in raw_brands if c.strip()
-        ]
+        brand_names = [c.replace("en:", "").strip() for c in raw_brands if c.strip()]
         if brand_names:
             process_brands_hierarchy(brand_names[::-1], product)
 
@@ -196,7 +193,6 @@ def load_products_from_json(json_path: str) -> list[Product]:
 
 
 # ... [Keep all previous code unchanged until main block] ...
-
 
 
 def generate_sql_general(products: list[Product]) -> str:
@@ -292,13 +288,14 @@ def generate_sql_general(products: list[Product]) -> str:
     csv_categories: list[str] = ["id,name,parent_id,parent_name"]
     csv_brands: list[str] = ["id,name,parent_id,parent_name"]
 
-
     # Create sequences
     sql.append("-- SEQUENCES")
     for table, config in table_config.items():
         sql.append(f"CREATE SEQUENCE IF NOT EXISTS {config['sequence']};")
     sql.append("-- TYPE")
-    sql.append("CREATE TYPE nutri_score AS ENUM ('A', 'B', 'C', 'D', 'E', 'UNKNOWN', 'NOT-APPLICABLE');",)
+    sql.append(
+        "CREATE TYPE nutri_score AS ENUM ('A', 'B', 'C', 'D', 'E', 'UNKNOWN', 'NOT-APPLICABLE');",
+    )
     # Create tables
     sql.append("\n-- TABLES")
     sql.append(
@@ -355,7 +352,9 @@ def generate_sql_general(products: list[Product]) -> str:
                     values.append("NULL")
                 elif isinstance(raw_value, list):
                     escaped = [f"'{v.replace("'", "''")}'" for v in raw_value]
-                    values.append(f"ARRAY[{', '.join(escaped)}]{"::text[]" if not escaped else ""}")
+                    values.append(
+                        f"ARRAY[{', '.join(escaped)}]{"::text[]" if not escaped else ""}"
+                    )
                 elif isinstance(raw_value, dict):
                     values.append(f"'{json.dumps(raw_value)}'::jsonb")
                 else:
@@ -368,17 +367,13 @@ def generate_sql_general(products: list[Product]) -> str:
                 f"INSERT INTO {table} ({', '.join(columns)}) "
                 f"VALUES ({', '.join(values)});"
             )
-            csv_categories.append(
-                f"{','.join(values)}"
-            )
-            csv_brands.append(
-                f"{','.join(values)}"
-            )
-            
+            csv_categories.append(f"{','.join(values)}")
+            csv_brands.append(f"{','.join(values)}")
+
     # remove ' from the csv.
     csv_categories = [x.replace("'", "").replace("NULL", "") for x in csv_categories]
     csv_brands = [x.replace("'", "").replace("NULL", "") for x in csv_brands]
-    return "\n".join(sql) , "\n".join(csv_categories), "\n".join(csv_brands)
+    return "\n".join(sql), "\n".join(csv_categories), "\n".join(csv_brands)
 
 
 # Example usage
@@ -409,7 +404,6 @@ if __name__ == "__main__":
         if cat.parent is None:
             print_category(cat)
 
-
     # Print brands hierarchy
     def print_brand(br: Brand, level: int = 0):
         indent = "  " * level
@@ -426,7 +420,6 @@ if __name__ == "__main__":
         if br.parent is None:
             print_brand(br)
 
-
     sql_script, csv_cat, csv_brands = generate_sql_general(products)
 
     # Save to file
@@ -438,6 +431,5 @@ if __name__ == "__main__":
 
     with open("brands.csv", "w", encoding="utf-8") as f:
         f.write(csv_brands)
-
 
     print("SQL script generated successfully!")
