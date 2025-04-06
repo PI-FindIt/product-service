@@ -2,7 +2,7 @@ import strawberry
 
 from graphql import GraphQLError
 from src.crud import crud
-from src.models import Product, ProductBase, Nutrition
+from src.models import Product, ProductBase
 
 
 @strawberry.type
@@ -12,14 +12,12 @@ class Query:
         obj = await crud.get(ean)
         if obj is None:
             return None
-        a = Product(**obj.model_dump())
-        a.nutrition = Nutrition.from_pydantic(obj.nutrition)
-        return a
+        return Product.from_pydantic(obj)
 
     @strawberry.field()
     async def products(self, name: str) -> list[Product]:
         objects = await crud.find(name)
-        return [Product(**obj.model_dump()) for obj in objects]
+        return [Product.from_pydantic(obj) for obj in objects]
 
 
 @strawberry.type
@@ -31,7 +29,7 @@ class Mutation:
             raise GraphQLError(
                 "ProductModel already exists", extensions={"code": "NOT_FOUND"}
             )
-        return Product(**obj.model_dump())
+        return Product.from_pydantic(obj)
 
     @strawberry.mutation()
     async def update_product(self, name: str, model: ProductBase) -> Product:
@@ -40,7 +38,7 @@ class Mutation:
             raise GraphQLError(
                 "ProductModel not found", extensions={"code": "NOT_FOUND"}
             )
-        return Product(**obj.model_dump())
+        return Product.from_pydantic(obj)
 
     @strawberry.mutation()
     async def delete_product(self, name: str) -> bool:

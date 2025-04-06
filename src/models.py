@@ -1,5 +1,6 @@
+import dataclasses
 from enum import Enum
-from typing import Optional
+from typing import Any, Optional
 
 import strawberry
 from sqlalchemy import TEXT, Column
@@ -55,7 +56,7 @@ class ProductModel(SQLModel, table=True):
     category_name: str | None = None
 
 
-fields = set(ProductModel.__annotations__.keys()) - {"id", "nutrition"}
+fields = set(ProductModel.__annotations__.keys()) - {"ean", "nutrition"}
 
 
 @strawberry.experimental.pydantic.input(model=NutritionModel, all_fields=True)
@@ -68,14 +69,28 @@ class Nutrition: ...
 
 @strawberry.experimental.pydantic.input(model=ProductModel, fields=list(fields))
 class ProductBase:
-    id: strawberry.ID
+    ean: strawberry.ID
     nutrition: NutritionBase
+
+    def to_pydantic(self) -> ProductModel:
+        data = dataclasses.asdict(self)  # type: ignore
+        del data["nutrition"]
+        return ProductModel(nutrition=self.nutrition.to_pydantic(), **data)
 
 
 @strawberry.federation.type(keys=["ean"])
 @strawberry.experimental.pydantic.type(model=ProductModel, fields=list(fields))
 class Product:
+    ean: strawberry.ID
     nutrition: Nutrition
+
+    @staticmethod
+    def from_pydantic(
+        instance: ProductModel, extra: dict[str, Any] | None = None
+    ) -> "Product":
+        data = instance.model_dump()
+        data["nutrition"] = Nutrition.from_pydantic(instance.nutrition)
+        return Product(**data)
 
     @strawberry.field()
     def category(self: ProductModel) -> Category:
