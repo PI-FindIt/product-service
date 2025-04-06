@@ -382,10 +382,10 @@ def generate_sql_general(products: list[Product]) -> str:
 
                 columns.append(col_name)
 
-            sql.append(
-                f"INSERT INTO {table} ({', '.join(columns)}) "
-                f"VALUES ({', '.join(values)});"
-            )
+            stmt = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(values)});"
+            if "'8445290026743', '', '', 'UNKNOWN'" in stmt:  # Ignore bad product
+                continue
+            sql.append(stmt)
             csv_categories.append(f"{','.join(values)}")
             csv_brands.append(f"{','.join(values)}")
 
