@@ -5,7 +5,7 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.config.session import get_postgres_session
-from src.models import ProductModel
+from src.models import NutritionModel, ProductModel
 
 
 class CrudProduct:
@@ -37,7 +37,11 @@ class CrudProduct:
         self, id: str, session: AsyncSession | None = None
     ) -> ProductModel | None:
         async with self._get_session(session) as session:
-            return await session.get(ProductModel, id)
+            a = await session.get(ProductModel, id)
+            if a is None:
+                return None
+            a.nutrition = NutritionModel.model_validate(a.nutrition)
+            return a
 
     async def get_all(self, session: AsyncSession | None = None) -> list[ProductModel]:
         async with self._get_session(session) as session:

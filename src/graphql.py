@@ -2,7 +2,7 @@ import strawberry
 
 from graphql import GraphQLError
 from src.crud import crud
-from src.models import Product, ProductBase
+from src.models import Product, ProductBase, Nutrition
 
 
 @strawberry.type
@@ -12,7 +12,9 @@ class Query:
         obj = await crud.get(ean)
         if obj is None:
             return None
-        return Product(**obj.model_dump())
+        a = Product(**obj.model_dump())
+        a.nutrition = Nutrition.from_pydantic(obj.nutrition)
+        return a
 
     @strawberry.field()
     async def products(self, name: str) -> list[Product]:

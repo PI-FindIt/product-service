@@ -31,13 +31,13 @@ class NutriScore(Enum):
 
 
 class NutritionModel(SQLModel):
-    energy: str | None = None
-    saturated_fat: str | None = None
-    fat: str | None = None
-    salt: str | None = None
-    sugars: str | None = None
-    proteins: str | None = None
-    carbohydrates: str | None = None
+    energy: float | None = None
+    saturated_fat: float | None = None
+    fat: float | None = None
+    salt: float | None = None
+    sugars: float | None = None
+    proteins: float | None = None
+    carbohydrates: float | None = None
 
 
 class ProductModel(SQLModel, table=True):
