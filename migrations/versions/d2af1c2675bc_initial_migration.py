@@ -40,8 +40,8 @@ def upgrade() -> None:
         sa.Column("unit", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column("keywords", postgresql.ARRAY(sa.TEXT()), nullable=True),
         sa.Column("images", postgresql.ARRAY(sa.TEXT()), nullable=True),
-        sa.Column("brand_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-        sa.Column("category_name", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("brand_name", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("category_name", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
         sa.PrimaryKeyConstraint("ean"),
     )
 

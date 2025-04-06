@@ -51,8 +51,8 @@ class ProductModel(SQLModel, table=True):
     unit: str
     keywords: list[str] = Field(default_factory=list, sa_column=Column(ARRAY(TEXT)))
     images: list[str] = Field(default_factory=list, sa_column=Column(ARRAY(TEXT)))
-    brand_name: str
-    category_name: str
+    brand_name: str | None = None
+    category_name: str | None = None
 
 
 fields = set(ProductModel.__annotations__.keys()) - {"id", "nutrition"}
