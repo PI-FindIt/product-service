@@ -256,7 +256,7 @@ def generate_sql_general(products: list[Product]) -> str:
                     "category_name",
                     lambda p, ctx: ctx["product_category_map"].get(p.name),
                 ),
-                ("brand_id", lambda p, ctx: ctx["product_brand_map"].get(p.name)),
+                ("brand_name", lambda p, ctx: ctx["product_brand_map"].get(p.name)),
             ],
             "sequence": "product_ean_seq",
         },
