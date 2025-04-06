@@ -1,11 +1,22 @@
-import dataclasses
+import json
 from enum import Enum
 from typing import Any, Optional
 
 import strawberry
-from sqlalchemy import TEXT, Column
-from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ARRAY, JSON, TEXT, Dialect, TypeDecorator
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Mapped, mapped_column
+from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyMapper
+
+strawberry_sqlalchemy_mapper = StrawberrySQLAlchemyMapper()
+_BaSe = declarative_base()
+
+
+class Base(_BaSe):
+    __abstract__ = True
+
+    def to_dict(self) -> dict[str, Any]:
+        return {field.name: getattr(self, field.name) for field in self.__table__.c}
 
 
 @strawberry.federation.type(keys=["name"], extend=True)
@@ -21,6 +32,7 @@ class Category:
         ]
 
 
+@strawberry.enum
 class NutriScore(Enum):
     A = "A"
     B = "B"
@@ -31,7 +43,8 @@ class NutriScore(Enum):
     NOT_APPLICABLE = "NOT-APPLICABLE"
 
 
-class NutritionModel(SQLModel):
+@strawberry.type()
+class Nutrition:
     energy: float | None = None
     saturated_fat: float | None = None
     fat: float | None = None
@@ -41,71 +54,51 @@ class NutritionModel(SQLModel):
     carbohydrates: float | None = None
 
 
-class ProductModel(SQLModel, table=True):
-    ean: str = Field(primary_key=True)
-    name: str
-    generic_name: str
-    nutrition: NutritionModel = Field(sa_column=Column(JSONB))
-    nutri_score: NutriScore
-    ingredients: str
-    quantity: str
-    unit: str
-    keywords: list[str] = Field(default_factory=list, sa_column=Column(ARRAY(TEXT)))
-    images: list[str] = Field(default_factory=list, sa_column=Column(ARRAY(TEXT)))
-    brand_name: str | None = None
-    category_name: str | None = None
+class NutritionJSON(TypeDecorator):  # type: ignore
+    impl = JSON
+
+    def process_bind_param(
+        self, value: Nutrition | None, dialect: Dialect
+    ) -> str | None:
+        if value is not None:
+            return json.dumps(strawberry.asdict(value))
+        return None
+
+    def process_result_value(
+        self, value: str | None, dialect: Dialect
+    ) -> Nutrition | None:
+        if value is not None:
+            data = json.loads(value)
+            return Nutrition(**data)
+        return None
 
 
-fields = set(ProductModel.__annotations__.keys()) - {"ean", "nutrition"}
+class ProductModel(Base):
+    __tablename__ = "productmodel"
+    ean: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    generic_name: Mapped[str]
+    nutrition: Mapped[Nutrition] = mapped_column(JSON)
+    nutri_score: Mapped[NutriScore]
+    ingredients: Mapped[str]
+    quantity: Mapped[str]
+    unit: Mapped[str]
+    keywords: Mapped[list[str]] = mapped_column(ARRAY(TEXT))
+    images: Mapped[list[str]] = mapped_column(ARRAY(TEXT))
+    brand_name: Mapped[str | None] = mapped_column(default=None)
+    category_name: Mapped[str | None] = mapped_column(default=None)
 
 
-@strawberry.experimental.pydantic.input(model=NutritionModel, all_fields=True)
-class NutritionBase: ...
+@strawberry.input()
+@strawberry_sqlalchemy_mapper.type(ProductModel)
+class ProductInput: ...
 
 
-@strawberry.experimental.pydantic.type(model=NutritionModel, all_fields=True)
-class Nutrition: ...
-
-
-@strawberry.experimental.pydantic.input(model=ProductModel, fields=list(fields))
-class ProductBase:
-    ean: strawberry.ID
-    nutrition: NutritionBase
-
-    def to_pydantic(self) -> ProductModel:
-        data = dataclasses.asdict(self)  # type: ignore
-        del data["nutrition"]
-        return ProductModel(nutrition=self.nutrition.to_pydantic(), **data)
-
-
-@strawberry.federation.type(keys=["ean"])
+@strawberry_sqlalchemy_mapper.type(ProductModel, use_federation=True)
 class Product:
-    ean: strawberry.ID
-    name: str
-    generic_name: str
-    nutrition: Nutrition
-    nutri_score: NutriScore
-    ingredients: str
-    quantity: str
-    unit: str
-    keywords: list[str]
-    images: list[str]
-    brand_name: str | None = None
-    category_name: str | None = None
-
     @strawberry.field()
     def category(self) -> Category:
         return Category(name=self.category_name)
-
-    @staticmethod
-    def from_pydantic(
-        instance: ProductModel, extra: dict[str, Any] | None = None
-    ) -> "Product":
-        if extra is None:
-            extra = {}
-        data = instance.model_dump()
-        data["nutrition"] = Nutrition.from_pydantic(instance.nutrition)
-        return Product(**data, **extra)
 
     @classmethod
     async def resolve_reference(cls, ean: strawberry.ID) -> Optional["Product"]:
@@ -115,4 +108,7 @@ class Product:
         if product_model is None:
             return None
 
-        return Product(**product_model.model_dump())
+        return Product(**product_model.to_dict())
+
+
+strawberry_sqlalchemy_mapper.finalize()
