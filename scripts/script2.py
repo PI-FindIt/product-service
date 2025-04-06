@@ -174,7 +174,7 @@ def load_products_from_json(json_path: str) -> list[Product]:
         )
 
         # Process categories
-        raw_categories = item.get("category_tags", [])
+        raw_categories = item.get("categories_tags", [])
         category_names = [
             c.replace("en:", "").strip() for c in raw_categories if c.strip()
         ]
@@ -234,18 +234,29 @@ def generate_sql_general(products: list[Product]) -> str:
             "class": Product,
             "columns": [
                 ("ean", lambda p, _: p.ean),
-                ("name", lambda p, _: p.name.replace("\n", " ").replace("\r", "").replace(":", "")),
+                (
+                    "name",
+                    lambda p, _: p.name.replace("\n", " ")
+                    .replace("\r", "")
+                    .replace(":", ""),
+                ),
                 (
                     "generic_name",
-                    lambda p, _: p.generic_name.replace("\n", " ").replace("\r", "").replace(":", ""),
+                    lambda p, _: p.generic_name.replace("\n", " ")
+                    .replace("\r", "")
+                    .replace(":", ""),
                 ),
                 (
                     "nutri_score",
-                    lambda p, _: p.nutri_score.value.replace("-", "_") if p.nutri_score else None,
+                    lambda p, _: (
+                        p.nutri_score.value.replace("-", "_") if p.nutri_score else None
+                    ),
                 ),
                 (
                     "ingredients",
-                    lambda p, _: p.ingredients.replace("\n", " ").replace("\r", "").replace(":", ""),
+                    lambda p, _: p.ingredients.replace("\n", " ")
+                    .replace("\r", "")
+                    .replace(":", ""),
                 ),
                 ("quantity", lambda p, _: p.quantity),
                 ("unit", lambda p, _: p.unit),
