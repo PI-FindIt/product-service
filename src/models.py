@@ -10,14 +10,14 @@ from sqlmodel import Field, SQLModel
 
 @strawberry.federation.type(keys=["name"], extend=True)
 class Category:
-    name: str = strawberry.federation.field(external=True)
+    name: str
 
     @strawberry.field()
     async def products(self) -> list["Product"]:
         from src.crud import crud
 
         return [
-            Product(**obj.model_dump()) for obj in await crud.get_by_category(self.name)
+            Product.from_pydantic(obj) for obj in await crud.get_by_category(self.name)
         ]
 
 
@@ -78,23 +78,34 @@ class ProductBase:
         return ProductModel(nutrition=self.nutrition.to_pydantic(), **data)
 
 
+def a() -> Category:
+    print("PIXA")
+    return Category(name="ice-creams")
+
+
 @strawberry.federation.type(keys=["ean"])
 @strawberry.experimental.pydantic.type(model=ProductModel, fields=list(fields))
 class Product:
     ean: strawberry.ID
     nutrition: Nutrition
+    category: Category = strawberry.field(
+        default_factory=lambda: Category(name="ice-creams")
+    )
 
     @staticmethod
     def from_pydantic(
         instance: ProductModel, extra: dict[str, Any] | None = None
     ) -> "Product":
+        if extra is None:
+            extra = {}
         data = instance.model_dump()
         data["nutrition"] = Nutrition.from_pydantic(instance.nutrition)
-        return Product(**data)
+        return Product(**data, **extra)
 
-    @strawberry.field()
-    def category(self: ProductModel) -> Category:
-        return Category(name=self.category_name)
+    # @strawberry.field()
+    # def category(self: ProductModel) -> Category:
+    #     print("PIXA", self)
+    #     return Category(name=self.category_name)
 
     @classmethod
     async def resolve_reference(cls, ean: strawberry.ID) -> Optional["Product"]:
