@@ -1,6 +1,6 @@
+import json
 from dataclasses import dataclass
 from enum import Enum
-import json
 from typing import Optional
 
 all_categories: list["Category"] = []
@@ -230,27 +230,33 @@ def generate_sql_general(products: list[Product]) -> str:
             ],
             "sequence": "brand_id_seq",
         },
-        "product": {
+        "productmodel": {
             "class": Product,
             "columns": [
                 ("ean", lambda p, _: p.ean),
-                ("name", lambda p, _: p.name),
-                ("generic_name", lambda p, _: p.generic_name),
+                ("name", lambda p, _: p.name.replace("\n", " ").replace("\r", "")),
+                (
+                    "generic_name",
+                    lambda p, _: p.generic_name.replace("\n", " ").replace("\r", ""),
+                ),
                 (
                     "nutri_score",
                     lambda p, _: p.nutri_score.value if p.nutri_score else None,
                 ),
-                ("ingredients", lambda p, _: p.ingredients),
+                (
+                    "ingredients",
+                    lambda p, _: p.ingredients.replace("\n", " ").replace("\r", ""),
+                ),
                 ("quantity", lambda p, _: p.quantity),
                 ("unit", lambda p, _: p.unit),
                 ("keywords", lambda p, _: p.keywords),
-                ("stores", lambda p, _: json.dumps(p.stores)),
-                ("images", lambda p, _: json.dumps(p.images)),
-                ("nutriments", lambda p, _: json.dumps(p.nutriments)),
+                ("images", lambda p, _: list(p.images.values())),
+                ("nutrition", lambda p, _: json.dumps(p.nutriments)),
                 (
-                    "terminal_category",
+                    "category_name",
                     lambda p, ctx: ctx["product_category_map"].get(p.name),
                 ),
+                ("brand_id", lambda p, ctx: ctx["product_brand_map"].get(p.name)),
             ],
             "sequence": "product_ean_seq",
         },
@@ -287,59 +293,61 @@ def generate_sql_general(products: list[Product]) -> str:
     sql = []
     csv_categories: list[str] = ["id,name,parent_id,parent_name"]
     csv_brands: list[str] = ["id,name,parent_id,parent_name"]
-
-    # Create sequences
-    sql.append("-- SEQUENCES")
-    for table, config in table_config.items():
-        sql.append(f"CREATE SEQUENCE IF NOT EXISTS {config['sequence']};")
-    sql.append("-- TYPE")
-    sql.append(
-        "CREATE TYPE nutri_score AS ENUM ('A', 'B', 'C', 'D', 'E', 'UNKNOWN', 'NOT-APPLICABLE');",
-    )
-    # Create tables
-    sql.append("\n-- TABLES")
-    sql.append(
-        """
-    CREATE TABLE category (
-        id INTEGER PRIMARY KEY DEFAULT nextval('category_id_seq'),
-        name TEXT NOT NULL,
-        parent_id INTEGER REFERENCES category(id)
-        parent_name TEXT references category(name)
-    );
-    CREATE TABLE brand (
-        id INTEGER PRIMARY KEY DEFAULT nextval('brand_id_seq'),
-        name TEXT NOT NULL,
-        parent_id INTEGER REFERENCES brand(id)
-        parent_name TEXT references brand(name)
-    );
-    CREATE TABLE product (
-        ean TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        generic_name TEXT,
-        nutri_score nutri_score,
-        ingredients TEXT,
-        quantity TEXT,
-        unit TEXT,
-        keywords TEXT[],
-        brands TEXT[],
-        stores TEXT[],
-        images JSONB,
-        nutriments JSONB,
-        terminal_category INTEGER REFERENCES category(name)
-    );
-    """
-    )
+    #
+    # # Create sequences
+    # sql.append("-- SEQUENCES")
+    # for table, config in table_config.items():
+    #     sql.append(f"CREATE SEQUENCE IF NOT EXISTS {config['sequence']};")
+    # sql.append("-- TYPE")
+    # sql.append(
+    #     "CREATE TYPE nutri_score AS ENUM ('A', 'B', 'C', 'D', 'E', 'UNKNOWN', 'NOT-APPLICABLE');",
+    # )
+    # # Create tables
+    # sql.append("\n-- TABLES")
+    # sql.append(
+    #     """
+    # CREATE TABLE category (
+    #     id INTEGER PRIMARY KEY DEFAULT nextval('category_id_seq'),
+    #     name TEXT NOT NULL,
+    #     parent_id INTEGER REFERENCES category(id)
+    #     parent_name TEXT references category(name)
+    # );
+    # CREATE TABLE brand (
+    #     id INTEGER PRIMARY KEY DEFAULT nextval('brand_id_seq'),
+    #     name TEXT NOT NULL,
+    #     parent_id INTEGER REFERENCES brand(id)
+    #     parent_name TEXT references brand(name)
+    # );
+    # CREATE TABLE product (
+    #     ean TEXT PRIMARY KEY,
+    #     name TEXT NOT NULL,
+    #     generic_name TEXT,
+    #     nutri_score nutri_score,
+    #     ingredients TEXT,
+    #     quantity TEXT,
+    #     unit TEXT,
+    #     keywords TEXT[],
+    #     brands TEXT[],
+    #     stores TEXT[],
+    #     images JSONB,
+    #     nutriments JSONB,
+    #     terminal_category INTEGER REFERENCES category(name)
+    # );
+    # """
+    # )
 
     # Generate inserts
     for table, config in table_config.items():
         if table == "category":
-            objects = all_categories
+            # objects = all_categories
+            continue
         elif table == "brand":
             objects = all_brands
+            continue
         else:
             objects = products
 
-        sql.append(f"\n-- {table.upper()} INSERTS")
+        # sql.append(f"\n-- {table.upper()} INSERTS")
         for obj in objects:
             if not isinstance(obj, config["class"]):
                 continue
@@ -423,7 +431,7 @@ if __name__ == "__main__":
     sql_script, csv_cat, csv_brands = generate_sql_general(products)
 
     # Save to file
-    with open("database_population2.sql", "w", encoding="utf-8") as f:
+    with open("../migrations/inserts.sql", "w", encoding="utf-8") as f:
         f.write(sql_script)
 
     with open("categories.csv", "w", encoding="utf-8") as f:

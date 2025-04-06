@@ -8,8 +8,8 @@ from src.models import Product, ProductBase
 @strawberry.type
 class Query:
     @strawberry.field()
-    async def product(self, name: str) -> Product | None:
-        obj = await crud.get(name)
+    async def product(self, ean: str) -> Product | None:
+        obj = await crud.get(ean)
         if obj is None:
             return None
         return Product(**obj.model_dump())

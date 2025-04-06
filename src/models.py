@@ -2,6 +2,8 @@ from enum import Enum
 from typing import Optional
 
 import strawberry
+from sqlalchemy import TEXT, Column
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlmodel import Field, SQLModel
 
 
@@ -29,28 +31,31 @@ class NutriScore(Enum):
 
 
 class NutritionModel(SQLModel):
-    saturated_fat: str
-    fat: str
-    salt: str
-    sugars: str
+    energy: str | None = None
+    saturated_fat: str | None = None
+    fat: str | None = None
+    salt: str | None = None
+    sugars: str | None = None
+    proteins: str | None = None
+    carbohydrates: str | None = None
 
 
-class ProductModel(SQLModel):
-    ean: strawberry.ID = Field(primary_key=True)
+class ProductModel(SQLModel, table=True):
+    ean: str = Field(primary_key=True)
     name: str
     generic_name: str
-    nutrition: NutritionModel
+    nutrition: NutritionModel = Field(sa_column=Column(JSONB))
     nutri_score: NutriScore
     ingredients: str
     quantity: str
     unit: str
-    keywords: list[str]
-    images: tuple[str, ...]
-    brand_id: int
+    keywords: list[str] = Field(default_factory=list, sa_column=Column(ARRAY(TEXT)))
+    images: list[str] = Field(default_factory=list, sa_column=Column(ARRAY(TEXT)))
+    brand_name: str
     category_name: str
 
 
-fields = set(ProductModel.__annotations__.keys()) - {"nutrition"}
+fields = set(ProductModel.__annotations__.keys()) - {"id", "nutrition"}
 
 
 @strawberry.experimental.pydantic.input(model=NutritionModel, all_fields=True)
@@ -63,6 +68,7 @@ class Nutrition: ...
 
 @strawberry.experimental.pydantic.input(model=ProductModel, fields=list(fields))
 class ProductBase:
+    id: strawberry.ID
     nutrition: NutritionBase
 
 
@@ -81,7 +87,6 @@ class Product:
 
         product_model = await crud.get(ean)
         if product_model is None:
-            print("a")
             return None
 
         return Product(**product_model.model_dump())

@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from enum import Enum
 import json
 import re
+from dataclasses import dataclass
+from enum import Enum
 
 all_categories: list["Category"] = []
 
@@ -16,10 +16,13 @@ class NutriScore(Enum):
 
 @dataclass
 class Nutrition:
-    saturatedFat: str
-    fat: str
-    salt: str
-    sugars: str
+    energy: str | None = None
+    saturated_fat: str | None = None
+    fat: str | None = None
+    salt: str | None = None
+    sugars: str | None = None
+    proteins: str | None = None
+    carbohydrates: str | None = None
 
 
 @dataclass
@@ -34,7 +37,6 @@ class Product:
     unit: str
     keywords: list[str]
     brands: list[str]
-
 
 
 @dataclass
@@ -102,6 +104,15 @@ for product in all_data:
                 product[a] = images
             if a == "stores":
                 product[a] = product[a].split(",")
+            if a == "nutriments":
+                # remove the nutrition and add it to the nutrition dict
+                nutrition = {}
+                for key, value in product[a].items():
+                    if key in Nutrition.__annotations__:
+                        if key == "saturated-fat":
+                            key = "saturated_fat"
+                        nutrition[key] = value
+                product[a] = nutrition
 
             product_data[b] = product[a]
 

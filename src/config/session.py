@@ -10,13 +10,8 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.config.settings import settings
 
-# from motor.motor_asyncio import AsyncIOMotorClient
-# from odmantic import AIOEngine
-
 postgres_engine = AsyncEngine(create_engine(settings.POSTGRES_URI, future=True))
 
-# _mongo_client: AsyncIOMotorClient = AsyncIOMotorClient(settings.MONGO_URI)
-# mongo_engine = AIOEngine(client=_mongo_client, database=settings.MONGO_DB)
 
 SQLAlchemyInstrumentor().instrument(engine=postgres_engine.sync_engine)
 
