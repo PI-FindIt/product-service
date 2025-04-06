@@ -1984,22 +1984,6 @@ mypy = ">=0.790"
 typing-extensions = ">=3.7.4"
 
 [[package]]
-name = "sqlmodel"
-version = "0.0.23"
-description = "SQLModel, SQL databases in Python, designed for simplicity, compatibility, and robustness."
-optional = false
-python-versions = ">=3.7"
-groups = ["main"]
-files = [
-    {file = "sqlmodel-0.0.23-py3-none-any.whl", hash = "sha256:93810464b11810845920e0fedfabb31af2ccc2bb670637e9445da7ccee5f9f46"},
-    {file = "sqlmodel-0.0.23.tar.gz", hash = "sha256:2b36be0d8b751c211864ec59c8c07c008078dbdeaf516f597eb61880a615197b"},
-]
-
-[package.dependencies]
-pydantic = ">=1.10.13,<3.0.0"
-SQLAlchemy = ">=2.0.14,<2.1.0"
-
-[[package]]
 name = "starlette"
 version = "0.46.1"
 description = "The little ASGI library that shines."
@@ -2344,4 +2328,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4.0"
-content-hash = "2d1fd266a982b4e9f9f1b72608b119ba9a233e076ac01d0b03f9a06def0bfa57"
+content-hash = "3c402660e242652718423d3db57765c842ea842c76dd75fd2d2f4c3be4e11821"
