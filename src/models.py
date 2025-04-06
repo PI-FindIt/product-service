@@ -78,19 +78,24 @@ class ProductBase:
         return ProductModel(nutrition=self.nutrition.to_pydantic(), **data)
 
 
-def a() -> Category:
-    print("PIXA")
-    return Category(name="ice-creams")
-
-
 @strawberry.federation.type(keys=["ean"])
-@strawberry.experimental.pydantic.type(model=ProductModel, fields=list(fields))
 class Product:
     ean: strawberry.ID
+    name: str
+    generic_name: str
     nutrition: Nutrition
-    category: Category = strawberry.field(
-        default_factory=lambda: Category(name="ice-creams")
-    )
+    nutri_score: NutriScore
+    ingredients: str
+    quantity: str
+    unit: str
+    keywords: list[str]
+    images: list[str]
+    brand_name: str | None = None
+    category_name: str | None = None
+
+    @strawberry.field()
+    def category(self) -> Category:
+        return Category(name=self.category_name)
 
     @staticmethod
     def from_pydantic(
@@ -101,11 +106,6 @@ class Product:
         data = instance.model_dump()
         data["nutrition"] = Nutrition.from_pydantic(instance.nutrition)
         return Product(**data, **extra)
-
-    # @strawberry.field()
-    # def category(self: ProductModel) -> Category:
-    #     print("PIXA", self)
-    #     return Category(name=self.category_name)
 
     @classmethod
     async def resolve_reference(cls, ean: strawberry.ID) -> Optional["Product"]:
