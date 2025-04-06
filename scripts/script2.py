@@ -234,18 +234,18 @@ def generate_sql_general(products: list[Product]) -> str:
             "class": Product,
             "columns": [
                 ("ean", lambda p, _: p.ean),
-                ("name", lambda p, _: p.name.replace("\n", " ").replace("\r", "")),
+                ("name", lambda p, _: p.name.replace("\n", " ").replace("\r", "").replace(":", "")),
                 (
                     "generic_name",
-                    lambda p, _: p.generic_name.replace("\n", " ").replace("\r", ""),
+                    lambda p, _: p.generic_name.replace("\n", " ").replace("\r", "").replace(":", ""),
                 ),
                 (
                     "nutri_score",
-                    lambda p, _: p.nutri_score.value if p.nutri_score else None,
+                    lambda p, _: p.nutri_score.value.replace("-", "_") if p.nutri_score else None,
                 ),
                 (
                     "ingredients",
-                    lambda p, _: p.ingredients.replace("\n", " ").replace("\r", ""),
+                    lambda p, _: p.ingredients.replace("\n", " ").replace("\r", "").replace(":", ""),
                 ),
                 ("quantity", lambda p, _: p.quantity),
                 ("unit", lambda p, _: p.unit),

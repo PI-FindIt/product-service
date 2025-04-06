@@ -9,6 +9,7 @@ Create Date: 2025-04-06 01:52:44.371635
 from typing import Sequence, Union
 
 from alembic import op
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision: str = "82430fd6dda8"
@@ -22,7 +23,7 @@ def upgrade() -> None:
     print("Populating data")
     with open("migrations/inserts.sql", "r") as f:
         for line in f.readlines():
-            op.execute(line)
+            op.execute(text(line))
     print("Data populated")
     # ### end Alembic commands ###
 
