@@ -3,10 +3,8 @@ from typing import AsyncGenerator
 
 from alembic import command, config
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from sqlalchemy import Connection
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
-from sqlmodel import create_engine
-from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy import Connection, create_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from src.config.settings import settings
 

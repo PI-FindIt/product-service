@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.session import get_postgres_session
 from src.models import ProductModel
@@ -40,17 +40,17 @@ class CrudProduct:
 
     async def get_all(self, session: AsyncSession | None = None) -> list[ProductModel]:
         async with self._get_session(session) as session:
-            result = await session.exec(select(ProductModel))
-            return list(result.all())
+            result = await session.execute(select(ProductModel))
+            return result.scalars().all()
 
     async def get_by_category(
         self, category: str, session: AsyncSession | None = None
     ) -> list[ProductModel]:
         async with self._get_session(session) as session:
-            result = await session.exec(
+            result = await session.execute(
                 select(ProductModel).where(ProductModel.category_name == category)
             )
-            return list(result.all())
+            return result.scalars().all()
 
     async def delete(self, id: str, session: AsyncSession | None = None) -> bool:
         obj = await self.get(id, session)

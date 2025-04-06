@@ -28,7 +28,7 @@ class Category:
         from src.crud import crud
 
         return [
-            Product.from_pydantic(obj) for obj in await crud.get_by_category(self.name)
+            Product(**obj.to_dict()) for obj in await crud.get_by_category(self.name)
         ]
 
 

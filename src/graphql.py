@@ -9,15 +9,11 @@ from src.models import Product, ProductInput, ProductModel
 class Query:
     @strawberry.field()
     async def product(self, ean: str) -> Product | None:
-        obj = await crud.get(ean)
-        if obj is None:
-            return None
-        return Product(**obj.to_dict())
+        return await crud.get(ean)
 
     @strawberry.field()
     async def products(self, name: str) -> list[Product]:
-        objects = await crud.find(name)
-        return [Product(**obj.to_dict()) for obj in objects]
+        return await crud.find(name)
 
 
 @strawberry.type
@@ -29,7 +25,7 @@ class Mutation:
             raise GraphQLError(
                 "ProductModel already exists", extensions={"code": "NOT_FOUND"}
             )
-        return Product(**obj.to_dict())
+        return obj
 
     @strawberry.mutation()
     async def delete_product(self, name: str) -> bool:
