@@ -47,7 +47,26 @@ class Category:
         from src.crud import crud
 
         return [
-            Product(**obj.to_dict()) for obj in await crud.get_by_category(self.name)
+            Product(**obj.to_dict())
+            for obj in await crud.get_all(
+                ProductFilter(category_name=Filter(value=self.name, op=Operator.EQ))
+            )
+        ]
+
+
+@strawberry.federation.type(keys=["name"], extend=True)
+class Brand:
+    name: str
+
+    @strawberry.field()
+    async def products(self) -> list["Product"]:
+        from src.crud import crud
+
+        return [
+            Product(**obj.to_dict())
+            for obj in await crud.get_all(
+                ProductFilter(brand_name=Filter(value=self.name, op=Operator.EQ))
+            )
         ]
 
 
@@ -118,6 +137,10 @@ class Product:
     @strawberry.field()
     def category(self) -> Category:
         return Category(name=self.category_name)
+
+    @strawberry.field()
+    def brand(self) -> Brand:
+        return Brand(name=self.brand_name)
 
     @classmethod
     async def resolve_reference(cls, ean: strawberry.ID) -> Optional["Product"]:

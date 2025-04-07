@@ -77,15 +77,6 @@ class CrudProduct:
             result = await session.execute(query)
             return result.scalars().all()
 
-    async def get_by_category(
-        self, category: str, session: AsyncSession | None = None
-    ) -> list[ProductModel]:
-        async with self._get_session(session) as session:
-            result = await session.execute(
-                select(ProductModel).where(ProductModel.category_name == category)
-            )
-            return result.scalars().all()
-
     async def delete(self, id: str, session: AsyncSession | None = None) -> bool:
         obj = await self.get(id, session)
         if obj is None:
