@@ -3,20 +3,13 @@ from typing import AsyncGenerator
 
 from alembic import command, config
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from sqlalchemy import Connection
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker
-from sqlmodel import create_engine
-from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy import Connection, create_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from src.config.settings import settings
 
-# from motor.motor_asyncio import AsyncIOMotorClient
-# from odmantic import AIOEngine
-
 postgres_engine = AsyncEngine(create_engine(settings.POSTGRES_URI, future=True))
 
-# _mongo_client: AsyncIOMotorClient = AsyncIOMotorClient(settings.MONGO_URI)
-# mongo_engine = AIOEngine(client=_mongo_client, database=settings.MONGO_DB)
 
 SQLAlchemyInstrumentor().instrument(engine=postgres_engine.sync_engine)
 

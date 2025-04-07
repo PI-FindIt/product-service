@@ -4,8 +4,8 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from sqlmodel import SQLModel
 
+from src import models
 from src.config.settings import settings
 from src.models import *  # noqa
 
@@ -19,7 +19,7 @@ config.set_main_option("sqlalchemy.url", settings.POSTGRES_URI)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metada ta
-target_metadata = SQLModel.metadata
+target_metadata = models.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
