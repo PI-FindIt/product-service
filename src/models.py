@@ -12,6 +12,25 @@ strawberry_sqlalchemy_mapper = StrawberrySQLAlchemyMapper()
 _BaSe = declarative_base()
 
 
+class Operator(Enum):
+    EQ = "=="
+    NE = "!="
+    LT = "<"
+    LE = "<="
+    GT = ">"
+    GE = ">="
+    LIKE = "like"
+    ILIKE = "ilike"
+    IN = "in"
+    NOT_IN = "not in"
+    IS = "is"
+    IS_NOT = "is not"
+    CONTAINS = "contains"
+    NOT_CONTAINS = "not contains"
+    ANY = "any"
+    ALL = "all"
+
+
 class Base(_BaSe):
     __abstract__ = True
 
@@ -109,6 +128,27 @@ class Product:
             return None
 
         return Product(**product_model.to_dict())
+
+
+@strawberry.input()
+class Filter[T]:
+    value: T
+    op: Operator
+
+
+@strawberry.input()
+class ProductFilter:
+    ean: Optional[Filter[str]] = None
+    name: Optional[Filter[str]] = None
+    generic_name: Optional[Filter[str]] = None
+    nutri_score: Optional[Filter[NutriScore]] = None
+    ingredients: Optional[Filter[str]] = None
+    quantity: Optional[Filter[str]] = None
+    unit: Optional[Filter[str]] = None
+    keywords: Optional[Filter[list[str]]] = None
+    images: Optional[Filter[list[str]]] = None
+    brand_name: Optional[Filter[str]] = None
+    category_name: Optional[Filter[str]] = None
 
 
 strawberry_sqlalchemy_mapper.finalize()
