@@ -6,6 +6,7 @@ import strawberry
 from sqlalchemy import ARRAY, JSON, TEXT, Dialect, TypeDecorator
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
+from strawberry.federation.schema_directives import Key, Shareable
 from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyMapper
 
 strawberry_sqlalchemy_mapper = StrawberrySQLAlchemyMapper()
@@ -132,7 +133,9 @@ class ProductModel(Base):
 class ProductInput: ...
 
 
-@strawberry_sqlalchemy_mapper.type(ProductModel, use_federation=True)
+@strawberry_sqlalchemy_mapper.type(
+    ProductModel, use_federation=True, directives=[Key(fields="ean"), Shareable()]
+)
 class Product:
     @strawberry.field()
     def category(self) -> Category:

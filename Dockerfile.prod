@@ -5,10 +5,14 @@ ENV ENV production
 
 WORKDIR /product-service
 
-RUN pip install --no-cache poetry
+RUN apk add --no-cache patch && pip install --no-cache poetry
 
 COPY . .
 RUN poetry install --no-dev
 
+WORKDIR /usr/local/lib/python3.13/site-packages
+RUN patch -p1 < /product-service/patches/strawberry-sqlalchemy.patch
+
+WORKDIR /product-service
 EXPOSE 8000
 CMD [ "poetry", "run", "gunicorn", "src.main:app", "--bind", "0.0.0.0:8000", "-k", "uvicorn.workers.UvicornWorker" ]
