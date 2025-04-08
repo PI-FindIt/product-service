@@ -7,14 +7,14 @@ ENV ENV development
 
 WORKDIR /product-service
 
-RUN apk add --no-cache patch
-RUN pip install --no-cache poetry
+RUN apk add --no-cache patch && pip install --no-cache poetry
 
-COPY poetry.lock pyproject.toml patches/ ./
+COPY poetry.lock pyproject.toml ./
+COPY patches/ ./patches/
 RUN poetry install --with dev
 
 WORKDIR /usr/local/lib/python3.13/site-packages
-RUN patch -p1 < /product-service/strawberry-sqlalchemy.patch
+RUN patch -p1 < /product-service/patches/strawberry-sqlalchemy.patch
 
 WORKDIR /product-service
 EXPOSE 8000

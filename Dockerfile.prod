@@ -5,8 +5,7 @@ ENV ENV production
 
 WORKDIR /product-service
 
-RUN apk add --no-cache patch
-RUN pip install --no-cache poetry
+RUN apk add --no-cache patch && pip install --no-cache poetry
 
 COPY . .
 RUN poetry install --no-dev
