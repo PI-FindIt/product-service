@@ -1,0 +1,33 @@
+diff --git a/strawberry_sqlalchemy_mapper/mapper.py b/strawberry_sqlalchemy_mapper/mapper.py
+index 14c7b54..476b23f 100644
+--- a/strawberry_sqlalchemy_mapper/mapper.py
++++ b/strawberry_sqlalchemy_mapper/mapper.py
+@@ -25,6 +25,7 @@
+     NewType,
+     Optional,
+     Protocol,
++    Sequence,
+     Set,
+     Type,
+     TypeVar,
+@@ -636,6 +637,7 @@ def type(
+         model: Type[BaseModelType],
+         make_interface=False,
+         use_federation=False,
++        directives: Union[Sequence[object], None] = (),
+     ) -> Callable[[Type[object]], Any]:
+         """
+         Decorate a type with this to register it as a strawberry type
+@@ -823,10 +825,10 @@ def convert(type_: Any) -> Any:
+                 mapped_type = strawberry.interface(type_)
+                 self.mapped_interfaces[type_.__name__] = mapped_type
+             elif use_federation:
+-                mapped_type = strawberry.federation.type(type_)
++                mapped_type = strawberry.federation.type(type_, directives=directives if directives else ())
+                 self.mapped_types[type_.__name__] = mapped_type
+             else:
+-                mapped_type = strawberry.type(type_)
++                mapped_type = strawberry.type(type_, directives=directives)
+                 self.mapped_types[type_.__name__] = mapped_type
+
+             setattr(
