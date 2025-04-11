@@ -54,10 +54,6 @@ services:
     depends_on:
       product-service_postgres:
         condition: service_healthy
-      elasticsearch:
-        condition: service_healthy
-#      product-service_mongo:
-#        condition: service_healthy
     volumes:
       - .:/product-service
     tty: true

@@ -15,6 +15,7 @@ from strawberry.fastapi import GraphQLRouter
 from src.config.session import init_postgres_db
 from src.graphql import Mutation, Query
 from src.models import Product, Category
+from src.config.settings import settings
 
 
 @asynccontextmanager
@@ -27,7 +28,7 @@ schema = strawberry.federation.Schema(
     query=Query,
     mutation=Mutation,
     types=[Product, Category],
-    extensions=[OpenTelemetryExtension],
+    extensions=[OpenTelemetryExtension] if settings.TELEMETRY else [],
     enable_federation_2=True,
 )
 graphql_app = GraphQLRouter(schema)
@@ -41,14 +42,15 @@ def ping() -> dict[str, str]:
     return {"message": "pong"}
 
 
-resource = Resource(attributes={SERVICE_NAME: "product-service"})
-tracer = TracerProvider(resource=resource)
+if settings.TELEMETRY:
+    resource = Resource(attributes={SERVICE_NAME: "product-service"})
+    tracer = TracerProvider(resource=resource)
 
-otlp_exporter = OTLPSpanExporter(
-    endpoint="apm-server:8200",
-    insecure=True,
-)
-tracer.add_span_processor(BatchSpanProcessor(otlp_exporter))
-trace.set_tracer_provider(tracer)
+    otlp_exporter = OTLPSpanExporter(
+        endpoint="apm-server:8200",
+        insecure=True,
+    )
+    tracer.add_span_processor(BatchSpanProcessor(otlp_exporter))
+    trace.set_tracer_provider(tracer)
 
-FastAPIInstrumentor.instrument_app(app)
+    FastAPIInstrumentor.instrument_app(app)

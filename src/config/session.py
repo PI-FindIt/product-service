@@ -11,7 +11,8 @@ from src.config.settings import settings
 postgres_engine = AsyncEngine(create_engine(settings.POSTGRES_URI, future=True))
 
 
-SQLAlchemyInstrumentor().instrument(engine=postgres_engine.sync_engine)
+if settings.TELEMETRY:
+    SQLAlchemyInstrumentor().instrument(engine=postgres_engine.sync_engine)
 
 
 def run_postgres_upgrade(connection: Connection, cfg: config.Config) -> None:
