@@ -30,6 +30,8 @@ class Operator(Enum):
     NOT_CONTAINS = "not contains"
     ANY = "any"
     ALL = "all"
+    LIMIT = "limit"
+    OFFSET = "offset"
 
 
 class Base(_BaSe):

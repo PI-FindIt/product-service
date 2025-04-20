@@ -27,6 +27,8 @@ operations = {
     ),
     Operator.ANY: lambda q, k, v: q.where(getattr(ProductModel, k).any(v)),
     Operator.ALL: lambda q, k, v: q.where(getattr(ProductModel, k).all(v)),
+    Operator.LIMIT: lambda q, k, v: q.limit(v),
+    Operator.OFFSET: lambda q, k, v: q.offset(v),
 }
 
 
