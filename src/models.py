@@ -141,6 +141,8 @@ class ProductInput: ...
 class Product:
     @strawberry.field()
     def category(self) -> Category:
+        print("PIXA")
+        print(self.category_name)
         return Category(name=self.category_name)
 
     @strawberry.field()
