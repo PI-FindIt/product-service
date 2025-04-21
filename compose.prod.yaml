@@ -37,8 +37,10 @@ services:
       dockerfile: Dockerfile.prod
     restart: unless-stopped
     environment:
-      - POSTGRES_URL=product-service_postgres
-      - MONGO_URL=product-service_mongo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_URL: product-service_postgres
     depends_on:
       product-service_postgres:
         condition: service_healthy
