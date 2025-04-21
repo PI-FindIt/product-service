@@ -1,19 +1,23 @@
-FROM python:3.13-alpine
+FROM ghcr.io/astral-sh/uv:python3.13-alpine
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
-ENV POETRY_VIRTUALENVS_CREATE false
-ENV POETRY_VIRTUALENVS_IN_PROJECT false
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
 ENV ENV development
 
 WORKDIR /product-service
 
-RUN apk add --no-cache patch && pip install --no-cache poetry
+ENV PATH="/product-service/.venv/bin:$PATH"
+RUN apk add --no-cache patch
 
-COPY poetry.lock pyproject.toml ./
+
+
+COPY uv.lock pyproject.toml ./
 COPY patches/ ./patches/
-RUN poetry install --with dev
+RUN uv sync --frozen
 
-WORKDIR /usr/local/lib/python3.13/site-packages
+WORKDIR /product-service/.venv/lib/python3.13/site-packages
+
 RUN patch -p1 < /product-service/patches/strawberry-sqlalchemy.patch
 
 WORKDIR /product-service

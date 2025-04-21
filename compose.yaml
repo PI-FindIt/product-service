@@ -55,6 +55,7 @@ services:
       product-service_postgres:
         condition: service_healthy
     volumes:
+      - /product-service/.venv
       - .:/product-service
     tty: true
     networks:
