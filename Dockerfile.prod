@@ -7,7 +7,7 @@ WORKDIR /product-service
 
 RUN apk add --no-cache patch && pip install --no-cache uv
 
-COPY --exclude=.venv/  . .
+COPY . .
 RUN uv sync
 
 WORKDIR /product-service/.venv/lib/python3.13/site-packages
