@@ -12,7 +12,7 @@ new_lines: list[str] = []
 
 def build_sql(line_strip: str, blurhash: str | None = None) -> str:
     line_new = "INSERT INTO productmodel (blurhash, ean, name, name_en, generic_name, generic_name_en, nutrition, nutri_score, ingredients, quantity, unit, keywords, images, brand_name, category_name) VALUES ("
-    line_new += f"'{blurhash}'" if blurhash else "NULL"
+    line_new += f"'{blurhash.replace(":", "\:")}'" if blurhash else "NULL"
     line_new += ", "
     line_new += line_strip
     line_new += ");\n"
