@@ -38,7 +38,7 @@ You are a professional translator. Your task is to translate a given input strin
 
 new_lines = []
 
-for line in lines[:10]:
+for line in lines:
     line_strip = line.lstrip(
         "INSERT INTO productmodel (ean, name, generic_name, nutri_score, ingredients, quantity, unit, keywords, images, nutrition, category_name, brand_name) VALUES  ("
     ).rstrip(");\n")
@@ -84,7 +84,7 @@ for line in lines[:10]:
 
         response_model = Name.model_validate_json(response.message.content)
         print("   Response:", response_model)
-        line_new += f"'{response_model.pt}', '{response_model.en}', "
+        line_new += f"'{response_model.pt.replace("'", "''")}', '{response_model.en.replace("'", "''")}', "
 
     line_new += "'"
     line_new += "', '".join(line_content[3:])
