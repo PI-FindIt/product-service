@@ -25,7 +25,9 @@ def upgrade() -> None:
         "productmodel",
         sa.Column("ean", sa.String(), nullable=False),
         sa.Column("name", sa.String(), nullable=False),
+        sa.Column("name_en", sa.String(), nullable=False),
         sa.Column("generic_name", sa.String(), nullable=False),
+        sa.Column("generic_name_en", sa.String(), nullable=False),
         sa.Column("nutrition", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column(
             "nutri_score",

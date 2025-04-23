@@ -118,7 +118,9 @@ class ProductModel(Base):
     __tablename__ = "productmodel"
     ean: Mapped[str] = mapped_column(primary_key=True)
     name: Mapped[str]
+    name_en: Mapped[str]
     generic_name: Mapped[str]
+    generic_name_en: Mapped[str]
     nutrition: Mapped[Nutrition] = mapped_column(JSON)
     nutri_score: Mapped[NutriScore]
     ingredients: Mapped[str]
@@ -141,8 +143,6 @@ class ProductInput: ...
 class Product:
     @strawberry.field()
     def category(self) -> Category:
-        print("PIXA")
-        print(self.category_name)
         return Category(name=self.category_name)
 
     @strawberry.field()
@@ -170,7 +170,9 @@ class Filter[T]:
 class ProductFilter:
     ean: Optional[Filter[str]] = None
     name: Optional[Filter[str]] = None
+    name_en: Optional[Filter[str]] = None
     generic_name: Optional[Filter[str]] = None
+    generic_name_en: Optional[Filter[str]] = None
     nutri_score: Optional[Filter[NutriScore]] = None
     ingredients: Optional[Filter[str]] = None
     quantity: Optional[Filter[str]] = None
