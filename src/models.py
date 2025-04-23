@@ -128,6 +128,7 @@ class ProductModel(Base):
     unit: Mapped[str]
     keywords: Mapped[list[str]] = mapped_column(ARRAY(TEXT))
     images: Mapped[list[str]] = mapped_column(ARRAY(TEXT))
+    blurhash: Mapped[str | None] = mapped_column(default=None)
     brand_name: Mapped[str | None] = mapped_column(default=None)
     category_name: Mapped[str | None] = mapped_column(default=None)
 

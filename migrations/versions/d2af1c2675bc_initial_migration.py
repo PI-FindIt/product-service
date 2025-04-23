@@ -41,6 +41,7 @@ def upgrade() -> None:
         sa.Column("unit", sa.String(), nullable=False),
         sa.Column("keywords", postgresql.ARRAY(sa.TEXT()), nullable=True),
         sa.Column("images", postgresql.ARRAY(sa.TEXT()), nullable=True),
+        sa.Column("blurhash", sa.String(), nullable=True),
         sa.Column("brand_name", sa.String(), nullable=True),
         sa.Column("category_name", sa.String(), nullable=True),
         sa.PrimaryKeyConstraint("ean"),
