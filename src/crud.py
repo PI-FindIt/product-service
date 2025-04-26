@@ -4,6 +4,7 @@ from typing import AsyncGenerator, Callable
 
 from sqlalchemy import select, or_, and_, ClauseList, UnaryExpression
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import load_only
 
 from src.config.session import get_postgres_session
 from src.models import ProductModel, ProductFilter, Operator, ProductOrder, Order
@@ -53,22 +54,35 @@ class CrudProduct:
             yield session
 
     async def _add_to_db(
-        self, obj: ProductModel, session: AsyncSession | None = None
+        self,
+        obj: ProductModel,
+        requested_fields: set[str],
+        session: AsyncSession | None = None,
     ) -> ProductModel:
         async with self._get_session(session) as session:
             session.add(obj)
             await session.commit()
-            await session.refresh(obj)
+            await session.refresh(obj, attribute_names=requested_fields)
             return obj
 
-    async def create(self, obj: ProductModel) -> ProductModel:
-        return await self._add_to_db(obj)
+    async def create(
+        self, obj: ProductModel, requested_fields: set[str]
+    ) -> ProductModel:
+        return await self._add_to_db(obj, requested_fields)
 
     async def get(
-        self, id: str, session: AsyncSession | None = None
+        self, id: str, requested_fields: set[str], session: AsyncSession | None = None
     ) -> ProductModel | None:
         async with self._get_session(session) as session:
-            return await session.get(ProductModel, id)
+            return await session.get(
+                ProductModel,
+                id,
+                options=[
+                    load_only(
+                        *(getattr(ProductModel, attr) for attr in requested_fields)
+                    )
+                ],
+            )
 
     def _compose_query(self, filters: list[ProductFilter] | None) -> ClauseList:
         clauses = ClauseList()
@@ -93,6 +107,7 @@ class CrudProduct:
 
     async def get_all(
         self,
+        requested_fields: set[str],
         filters: ProductFilter | None = None,
         order_by: ProductOrder | None = None,
         limit: int = 10,
@@ -116,6 +131,11 @@ class CrudProduct:
                 )
                 .limit(limit)
                 .offset(offset)
+                .options(
+                    load_only(
+                        *(getattr(ProductModel, attr) for attr in requested_fields)
+                    )
+                )
             )
             result = await session.execute(query)
             return result.scalars().all()
