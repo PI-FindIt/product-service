@@ -188,7 +188,11 @@ class ProductFilter:
 
 class Order(Enum):
     ASC = "asc"
+    ASC_NULLS_FIRST = "asc_nulls_first"
+    ASC_NULLS_LAST = "asc_nulls_last"
     DESC = "desc"
+    DESC_NULLS_FIRST = "desc_nulls_first"
+    DESC_NULLS_LAST = "desc_nulls_last"
 
 
 @strawberry.input()

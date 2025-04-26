@@ -10,7 +10,13 @@ from src.models import ProductModel, ProductFilter, Operator, ProductOrder, Orde
 
 order_map: dict[Order, Callable[[str], UnaryExpression]] = {
     Order.ASC: lambda name: getattr(ProductModel, name).asc(),
+    Order.ASC_NULLS_FIRST: lambda name: getattr(ProductModel, name).asc().nulls_first(),
+    Order.ASC_NULLS_LAST: lambda name: getattr(ProductModel, name).asc().nulls_last(),
     Order.DESC: lambda name: getattr(ProductModel, name).desc(),
+    Order.DESC_NULLS_FIRST: lambda name: getattr(ProductModel, name)
+    .desc()
+    .nulls_first(),
+    Order.DESC_NULLS_LAST: lambda name: getattr(ProductModel, name).desc().nulls_last(),
 }
 
 
