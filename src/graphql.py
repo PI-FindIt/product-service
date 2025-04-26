@@ -2,7 +2,7 @@ import strawberry
 
 from graphql import GraphQLError
 from src.crud import crud
-from src.models import Product, ProductFilter, ProductInput, ProductModel
+from src.models import Product, ProductFilter, ProductInput, ProductModel, ProductOrder
 
 
 @strawberry.type
@@ -12,8 +12,12 @@ class Query:
         return await crud.get(ean)
 
     @strawberry.field()
-    async def products(self, filters: ProductFilter | None = None) -> list[Product]:
-        return await crud.get_all(filters)
+    async def products(
+        self,
+        filters: ProductFilter | None = None,
+        order_by: ProductOrder | None = None,
+    ) -> list[Product]:
+        return await crud.get_all(filters, order_by)
 
 
 @strawberry.type

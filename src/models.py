@@ -186,4 +186,20 @@ class ProductFilter:
     category_name: Optional[Filter[str]] = None
 
 
+class Order(Enum):
+    ASC = "asc"
+    DESC = "desc"
+
+
+@strawberry.input()
+class ProductOrder:
+    ean: Optional[Order] = None
+    name: Optional[Order] = None
+    name_en: Optional[Order] = None
+    nutri_score: Optional[Order] = None
+    quantity: Optional[Order] = None
+    brand_name: Optional[Order] = None
+    category_name: Optional[Order] = None
+
+
 strawberry_sqlalchemy_mapper.finalize()

@@ -1,12 +1,18 @@
 import dataclasses
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Callable, Any
 
-from sqlalchemy import select, or_, and_, ClauseList
+from sqlalchemy import select, or_, and_, ClauseList, UnaryExpression
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.session import get_postgres_session
-from src.models import ProductModel, ProductFilter, Operator
+from src.models import ProductModel, ProductFilter, Operator, ProductOrder, Order
+
+order_map: dict[Order, Callable[[str], UnaryExpression]] = {
+    Order.ASC: lambda name: getattr(ProductModel, name).asc(),
+    Order.DESC: lambda name: getattr(ProductModel, name).desc(),
+}
+
 
 operations = {
     Operator.EQ: lambda k, v: getattr(ProductModel, k) == v,
@@ -58,8 +64,12 @@ class CrudProduct:
         async with self._get_session(session) as session:
             return await session.get(ProductModel, id)
 
-    def _compose_query(self, filters: list[ProductFilter]) -> ClauseList:
+    def _compose_query(self, filters: list[ProductFilter] | None) -> ClauseList:
         clauses = ClauseList()
+
+        if filters is None:
+            return clauses
+
         for filter_ in filters:
             for field in dataclasses.fields(filter_):
                 value = getattr(filter_, field.name)
@@ -78,14 +88,25 @@ class CrudProduct:
     async def get_all(
         self,
         filters: ProductFilter | None = None,
+        order_by: ProductOrder | None = None,
         session: AsyncSession | None = None,
     ) -> list[ProductModel]:
         async with self._get_session(session) as session:
-            query = select(ProductModel)
-            if filters is not None:
-                clauses = self._compose_query([filters])
-                if clauses.clauses:
-                    query = query.where(*clauses)
+            query = (
+                select(ProductModel)
+                .where(*self._compose_query([filters] if filters else None))
+                .order_by(
+                    *(
+                        [
+                            order_map[value](field.name)
+                            for field in dataclasses.fields(order_by)
+                            if (value := getattr(order_by, field.name)) is not None
+                        ]
+                        if order_by is not None
+                        else []
+                    )
+                )
+            )
             result = await session.execute(query)
             return result.scalars().all()
 
