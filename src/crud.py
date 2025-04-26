@@ -1,34 +1,30 @@
+import dataclasses
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
-from sqlalchemy import select
+from sqlalchemy import select, or_, and_, ClauseList
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.session import get_postgres_session
 from src.models import ProductModel, ProductFilter, Operator
 
-
 operations = {
-    Operator.EQ: lambda q, k, v: q.where(getattr(ProductModel, k) == v),
-    Operator.NE: lambda q, k, v: q.where(getattr(ProductModel, k) != v),
-    Operator.LT: lambda q, k, v: q.where(getattr(ProductModel, k) < v),
-    Operator.LE: lambda q, k, v: q.where(getattr(ProductModel, k) <= v),
-    Operator.GT: lambda q, k, v: q.where(getattr(ProductModel, k) > v),
-    Operator.GE: lambda q, k, v: q.where(getattr(ProductModel, k) >= v),
-    Operator.LIKE: lambda q, k, v: q.where(getattr(ProductModel, k).like(v)),
-    Operator.ILIKE: lambda q, k, v: q.where(getattr(ProductModel, k).ilike(v)),
-    Operator.IN: lambda q, k, v: q.where(getattr(ProductModel, k).in_(v)),
-    Operator.NOT_IN: lambda q, k, v: q.where(getattr(ProductModel, k).notin_(v)),
-    Operator.IS: lambda q, k, v: q.where(getattr(ProductModel, k).is_(v)),
-    Operator.IS_NOT: lambda q, k, v: q.where(getattr(ProductModel, k).isnot(v)),
-    Operator.CONTAINS: lambda q, k, v: q.where(getattr(ProductModel, k).contains(v)),
-    Operator.NOT_CONTAINS: lambda q, k, v: q.where(
-        getattr(ProductModel, k).notcontains(v)
-    ),
-    Operator.ANY: lambda q, k, v: q.where(getattr(ProductModel, k).any(v)),
-    Operator.ALL: lambda q, k, v: q.where(getattr(ProductModel, k).all(v)),
-    Operator.LIMIT: lambda q, k, v: q.limit(v),
-    Operator.OFFSET: lambda q, k, v: q.offset(v),
+    Operator.EQ: lambda k, v: getattr(ProductModel, k) == v,
+    Operator.NE: lambda k, v: getattr(ProductModel, k) != v,
+    Operator.LT: lambda k, v: getattr(ProductModel, k) < v,
+    Operator.LE: lambda k, v: getattr(ProductModel, k) <= v,
+    Operator.GT: lambda k, v: getattr(ProductModel, k) > v,
+    Operator.GE: lambda k, v: getattr(ProductModel, k) >= v,
+    Operator.LIKE: lambda k, v: getattr(ProductModel, k).like(v),
+    Operator.ILIKE: lambda k, v: getattr(ProductModel, k).ilike(v),
+    Operator.IN: lambda k, v: getattr(ProductModel, k).in_(v),
+    Operator.NOT_IN: lambda k, v: getattr(ProductModel, k).notin_(v),
+    Operator.IS: lambda k, v: getattr(ProductModel, k).is_(v),
+    Operator.IS_NOT: lambda k, v: getattr(ProductModel, k).isnot(v),
+    Operator.CONTAINS: lambda k, v: getattr(ProductModel, k).contains(v),
+    Operator.NOT_CONTAINS: lambda k, v: getattr(ProductModel, k).notcontains(v),
+    Operator.ANY: lambda k, v: getattr(ProductModel, k).any(v),
+    Operator.ALL: lambda k, v: getattr(ProductModel, k).all(v),
 }
 
 
@@ -62,20 +58,34 @@ class CrudProduct:
         async with self._get_session(session) as session:
             return await session.get(ProductModel, id)
 
+    def _compose_query(self, filters: list[ProductFilter]) -> ClauseList:
+        clauses = ClauseList()
+        for filter_ in filters:
+            for field in dataclasses.fields(filter_):
+                value = getattr(filter_, field.name)
+                if value is None:
+                    continue
+
+                match field.name:
+                    case "and_":
+                        clauses.append(and_(*self._compose_query(value)))
+                    case "or_":
+                        clauses.append(or_(*self._compose_query(value)))
+                    case _:
+                        clauses.append(operations[value.op](field.name, value.value))
+        return clauses
+
     async def get_all(
         self,
-        filters: ProductFilter,
+        filters: ProductFilter | None = None,
         session: AsyncSession | None = None,
     ) -> list[ProductModel]:
         async with self._get_session(session) as session:
             query = select(ProductModel)
-            for key, value in [
-                (column.key, getattr(filters, column.key))
-                for column in ProductModel.__table__.columns
-                if column.key != "nutrition"
-                if getattr(filters, column.key) is not None
-            ]:
-                query = operations[value.op](query, key, value.value)
+            if filters is not None:
+                clauses = self._compose_query([filters])
+                if clauses.clauses:
+                    query = query.where(*clauses)
             result = await session.execute(query)
             return result.scalars().all()
 

@@ -12,7 +12,7 @@ class Query:
         return await crud.get(ean)
 
     @strawberry.field()
-    async def products(self, filters: ProductFilter) -> list[Product]:
+    async def products(self, filters: ProductFilter | None = None) -> list[Product]:
         return await crud.get_all(filters)
 
 

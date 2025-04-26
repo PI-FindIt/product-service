@@ -169,6 +169,8 @@ class Filter[T]:
 
 @strawberry.input()
 class ProductFilter:
+    and_: Optional[list["ProductFilter"]] = strawberry.field(default=None, name="and")
+    or_: Optional[list["ProductFilter"]] = strawberry.field(default=None, name="or")
     ean: Optional[Filter[str]] = None
     name: Optional[Filter[str]] = None
     name_en: Optional[Filter[str]] = None
