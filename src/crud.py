@@ -89,6 +89,8 @@ class CrudProduct:
         self,
         filters: ProductFilter | None = None,
         order_by: ProductOrder | None = None,
+        limit: int = 10,
+        offset: int = 0,
         session: AsyncSession | None = None,
     ) -> list[ProductModel]:
         async with self._get_session(session) as session:
@@ -106,6 +108,8 @@ class CrudProduct:
                         else []
                     )
                 )
+                .limit(limit)
+                .offset(offset)
             )
             result = await session.execute(query)
             return result.scalars().all()

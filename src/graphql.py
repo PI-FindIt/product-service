@@ -16,8 +16,10 @@ class Query:
         self,
         filters: ProductFilter | None = None,
         order_by: ProductOrder | None = None,
+        limit: int = 10,
+        offset: int = 0,
     ) -> list[Product]:
-        return await crud.get_all(filters, order_by)
+        return await crud.get_all(filters, order_by, limit, offset)
 
 
 @strawberry.type
