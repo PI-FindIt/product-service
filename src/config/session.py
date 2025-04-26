@@ -3,12 +3,16 @@ from typing import AsyncGenerator
 
 from alembic import command, config
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from sqlalchemy import Connection, create_engine
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
+from sqlalchemy import Connection
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from src.config.settings import settings
 
-postgres_engine = AsyncEngine(create_engine(settings.POSTGRES_URI, future=True))
+postgres_engine = create_async_engine(settings.POSTGRES_URI, future=True, echo=True)
 
 
 if settings.TELEMETRY:
