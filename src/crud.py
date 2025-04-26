@@ -1,6 +1,6 @@
 import dataclasses
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Callable, Any
+from typing import AsyncGenerator, Callable
 
 from sqlalchemy import select, or_, and_, ClauseList, UnaryExpression
 from sqlalchemy.ext.asyncio import AsyncSession
