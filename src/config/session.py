@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import (
 
 from src.config.settings import settings
 
-postgres_engine = create_async_engine(settings.POSTGRES_URI, future=True, echo=True)
+postgres_engine = create_async_engine(settings.POSTGRES_URI, future=True)
 
 
 if settings.TELEMETRY:

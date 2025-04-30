@@ -9,6 +9,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from strawberry.federation.schema_directives import Key, Shareable
 from strawberry_sqlalchemy_mapper import StrawberrySQLAlchemyMapper
 
+from src.utils import get_requested_fields
+
 strawberry_sqlalchemy_mapper = StrawberrySQLAlchemyMapper()
 _BaSe = declarative_base()
 
@@ -46,15 +48,13 @@ class Category:
     name: str
 
     @strawberry.field()
-    async def products(self) -> list["Product"]:
+    async def products(self, info: strawberry.Info) -> list["Product"]:
         from src.crud import crud
 
-        return [
-            Product(**obj.to_dict())
-            for obj in await crud.get_all(
-                ProductFilter(category_name=Filter(value=self.name, op=Operator.EQ))
-            )
-        ]
+        return await crud.get_all(
+            get_requested_fields(info),
+            ProductFilter(category_name=Filter(value=self.name, op=Operator.EQ)),
+        )
 
 
 @strawberry.federation.type(keys=["name"], extend=True)
@@ -62,15 +62,13 @@ class Brand:
     name: str
 
     @strawberry.field()
-    async def products(self) -> list["Product"]:
+    async def products(self, info: strawberry.Info) -> list["Product"]:
         from src.crud import crud
 
-        return [
-            Product(**obj.to_dict())
-            for obj in await crud.get_all(
-                ProductFilter(brand_name=Filter(value=self.name, op=Operator.EQ))
-            )
-        ]
+        return await crud.get_all(
+            get_requested_fields(info),
+            ProductFilter(brand_name=Filter(value=self.name, op=Operator.EQ)),
+        )
 
 
 @strawberry.enum
@@ -151,14 +149,12 @@ class Product:
         return Brand(name=self.brand_name)
 
     @classmethod
-    async def resolve_reference(cls, ean: strawberry.ID) -> Optional["Product"]:
+    async def resolve_reference(
+        cls, info: strawberry.Info, ean: strawberry.ID
+    ) -> Optional["Product"]:
         from src.crud import crud
 
-        product_model = await crud.get(ean)
-        if product_model is None:
-            return None
-
-        return Product(**product_model.to_dict())
+        return await crud.get(ean, get_requested_fields(info))
 
 
 @strawberry.input()

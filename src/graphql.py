@@ -2,25 +2,17 @@ import strawberry
 
 from graphql import GraphQLError
 from strawberry import Info
-from strawberry.utils.str_converters import to_snake_case
 
 from src.crud import crud
 from src.models import Product, ProductFilter, ProductInput, ProductModel, ProductOrder
-
-
-def _get_requested_fields(info: Info) -> set[str]:
-    return {
-        to_snake_case(selection.name + ("_name" if selection.selections else ""))
-        for field in info.selected_fields
-        for selection in field.selections
-    }
+from src.utils import get_requested_fields
 
 
 @strawberry.type
 class Query:
     @strawberry.field()
     async def product(self, ean: str, info: Info) -> Product | None:
-        return await crud.get(ean, _get_requested_fields(info))
+        return await crud.get(ean, get_requested_fields(info))
 
     @strawberry.field()
     async def products(
@@ -32,7 +24,7 @@ class Query:
         offset: int = 0,
     ) -> list[Product]:
         return await crud.get_all(
-            _get_requested_fields(info), filters, order_by, limit, offset
+            get_requested_fields(info), filters, order_by, limit, offset
         )
 
 
@@ -41,7 +33,7 @@ class Mutation:
     @strawberry.mutation()
     async def create_product(self, model: ProductInput, info: Info) -> Product:
         obj = await crud.create(
-            ProductModel(**strawberry.asdict(model)), _get_requested_fields(info)
+            ProductModel(**strawberry.asdict(model)), get_requested_fields(info)
         )
         if obj is None:
             raise GraphQLError(
